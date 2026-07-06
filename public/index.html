@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AnPaw Agent Lab</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="chat">
+        <header class="topbar">
+          <div>
+            <h1>AnPaw Agent Lab</h1>
+            <p id="modelInfo">loading model...</p>
+          </div>
+          <div class="settings">
+            <input id="agentId" value="default" aria-label="agent id">
+            <select id="providerSelect" aria-label="provider"></select>
+            <select id="modelSelect" aria-label="model"></select>
+            <button id="refreshModels" type="button">刷新模型</button>
+            <input id="apiKey" type="password" placeholder="API Key (optional)" aria-label="api key">
+            <button id="testModel" type="button">测试模型</button>
+          </div>
+        </header>
+
+        <div id="messages" class="messages"></div>
+
+        <form id="chatForm" class="composer">
+          <textarea id="messageInput" rows="3" placeholder="试试：计算 2 + 3 * 4 / 现在几点 / 使用 writer skill 写一段项目介绍"></textarea>
+          <button type="submit">发送</button>
+        </form>
+      </section>
+
+      <aside class="trace">
+        <div class="traceHead">
+          <h2>运行链路</h2>
+          <div class="traceActions">
+            <button id="viewLogs" type="button">日志</button>
+            <button id="clearTrace" type="button">清空</button>
+          </div>
+        </div>
+        <div class="flow">
+          <span>入口</span>
+          <span>Manager</span>
+          <span>Workspace</span>
+          <span>Runner</span>
+          <span>Model</span>
+          <span>Tool/Skill</span>
+          <span>Final</span>
+        </div>
+        <div id="traceList" class="traceList"></div>
+      </aside>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

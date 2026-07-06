@@ -1,0 +1,98 @@
+2026-07-06 17:21:28 INFO    anpaw.app - server started on http://127.0.0.1:8095
+2026-07-06 17:21:29 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'message']
+2026-07-06 17:21:29 INFO    anpaw.app - chat request agent=log-check provider=(default) model=(default) text='/skills'
+2026-07-06 17:21:29 INFO    anpaw.manager - resolve agent workspace agent=log-check
+2026-07-06 17:21:29 INFO    anpaw.tools - registered tool name=calculator
+2026-07-06 17:21:29 INFO    anpaw.tools - registered tool name=time
+2026-07-06 17:21:29 INFO    anpaw.tools - registered tool name=note
+2026-07-06 17:21:29 INFO    anpaw.workspace - workspace created agent=log-check skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
+2026-07-06 17:21:29 INFO    anpaw.workspace - workspace started agent=log-check dir=E:\.Aproject\anpaw\workspace\log-check
+2026-07-06 17:21:29 INFO    anpaw.manager - workspace loaded agent=log-check
+2026-07-06 17:21:29 INFO    anpaw.runner - handled command agent=log-check command=/skills
+2026-07-06 17:21:29 INFO    anpaw.app - chat response agent=log-check trace_events=7 answer_preview='- calculator: 处理数学、计算、数字推理类任务。\n- writer: 处理介绍、总结、改写、文案和结构化写作任务。'
+2026-07-06 17:21:29 INFO    anpaw.app - HTTP GET /logs
+2026-07-06 17:22:19 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'message', 'model', 'provider']
+2026-07-06 17:22:19 INFO    anpaw.app - chat request agent=log-check provider=kilo model=kilo-auto/free text='你好，用一句话介绍你自己'
+2026-07-06 17:22:19 INFO    anpaw.manager - resolve agent workspace agent=log-check
+2026-07-06 17:22:19 INFO    anpaw.manager - reuse workspace agent=log-check
+2026-07-06 17:22:19 INFO    anpaw.runner - runner invoking agent agent=log-check provider=kilo model=kilo-auto/free auth=no_key
+2026-07-06 17:22:19 INFO    anpaw.agent - agent loop step=1 observations=0
+2026-07-06 17:22:19 INFO    anpaw.model - model HTTP request provider=kilo model=kilo-auto/free auth=no_key messages=2
+2026-07-06 17:22:22 WARNING anpaw.model - model HTTP error status=429 body={"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"poolside/laguna-m.1:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations","provider_name":"Poolside","is_byok":false}},"user_id":"org_2uwFc1szZKyZweUX7pX97kXQf2O"}
+2026-07-06 17:22:22 WARNING anpaw.model - model decision failed provider=kilo model=kilo-auto/free error=HTTP 429: {"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"poolside/laguna-m.1:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations","provider_name":"Poolside","is_byok":false}},"user_id":"org_2uwFc1szZKyZweUX7pX97kXQf2O"}
+2026-07-06 17:22:22 INFO    anpaw.agent - agent final step=1
+2026-07-06 17:22:22 INFO    anpaw.app - chat response agent=log-check trace_events=15 answer_preview='[step 1] 云端模型调用失败，已停止本轮。\n\n错误：HTTP 429: {"error":{"message":"Provider returned error","code":429,"metadata":{"raw":"pools'
+2026-07-06 17:23:12 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'message', 'model', 'provider']
+2026-07-06 17:23:12 INFO    anpaw.app - chat request agent=log-check provider=kilo model=kilo-auto/free text='你好，用一句话介绍你自己'
+2026-07-06 17:23:12 INFO    anpaw.manager - resolve agent workspace agent=log-check
+2026-07-06 17:23:12 INFO    anpaw.manager - reuse workspace agent=log-check
+2026-07-06 17:23:12 INFO    anpaw.runner - runner invoking agent agent=log-check provider=kilo model=kilo-auto/free auth=no_key
+2026-07-06 17:23:12 INFO    anpaw.agent - agent loop step=1 observations=0
+2026-07-06 17:23:12 INFO    anpaw.model - model HTTP request provider=kilo model=kilo-auto/free auth=no_key messages=2
+2026-07-06 17:23:19 INFO    anpaw.model - model HTTP response provider=kilo model=kilo-auto/free chars=81
+2026-07-06 17:23:19 INFO    anpaw.agent - agent final step=1
+2026-07-06 17:23:19 INFO    anpaw.app - chat response agent=log-check trace_events=15 answer_preview='[step 1] 你好！我是一位智能助手，擅长回答问题、处理数学计算、创作文案和记录笔记，随时准备帮助你解决各种任务。'
+2026-07-06 17:25:18 INFO    anpaw.app - HTTP GET /
+2026-07-06 17:25:18 INFO    anpaw.app - HTTP GET /style.css
+2026-07-06 17:25:18 INFO    anpaw.app - HTTP GET /app.js
+2026-07-06 17:25:18 INFO    anpaw.app - HTTP GET /config
+2026-07-06 17:25:18 INFO    anpaw.app - HTTP GET /providers
+2026-07-06 17:25:18 INFO    anpaw.app - HTTP GET /models
+2026-07-06 17:25:25 INFO    anpaw.app - server started on http://127.0.0.1:8095
+2026-07-06 17:25:35 INFO    anpaw.app - HTTP GET /
+2026-07-06 17:25:35 INFO    anpaw.app - HTTP GET /style.css
+2026-07-06 17:25:35 INFO    anpaw.app - HTTP GET /app.js
+2026-07-06 17:25:35 INFO    anpaw.app - HTTP GET /config
+2026-07-06 17:25:35 INFO    anpaw.app - HTTP GET /providers
+2026-07-06 17:25:35 INFO    anpaw.app - HTTP GET /models
+2026-07-06 17:25:40 INFO    anpaw.app - HTTP POST /model-test keys=['api_key', 'model', 'provider']
+2026-07-06 17:25:40 INFO    anpaw.model - model HTTP request provider=kilo model=nex-agi/nex-n2-pro:free auth=no_key messages=2
+2026-07-06 17:25:42 WARNING anpaw.model - model HTTP error status=404 body={"error":{"message":"This model is unavailable for free. The paid version is available now - use this slug instead: nex-agi/nex-n2-pro","code":404},"user_id":"org_2uwFc1szZKyZweUX7pX97kXQf2O"}
+2026-07-06 17:25:45 INFO    anpaw.app - HTTP POST /model-test keys=['api_key', 'model', 'provider']
+2026-07-06 17:25:45 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
+2026-07-06 17:25:51 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=6
+2026-07-06 17:25:58 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
+2026-07-06 17:25:58 INFO    anpaw.app - chat request agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='现在几点'
+2026-07-06 17:25:58 INFO    anpaw.manager - resolve agent workspace agent=default
+2026-07-06 17:25:58 INFO    anpaw.tools - registered tool name=calculator
+2026-07-06 17:25:58 INFO    anpaw.tools - registered tool name=time
+2026-07-06 17:25:58 INFO    anpaw.tools - registered tool name=note
+2026-07-06 17:25:58 INFO    anpaw.workspace - workspace created agent=default skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
+2026-07-06 17:25:58 INFO    anpaw.workspace - workspace started agent=default dir=E:\.Aproject\anpaw\workspace\default
+2026-07-06 17:25:58 INFO    anpaw.manager - workspace loaded agent=default
+2026-07-06 17:25:58 INFO    anpaw.runner - runner invoking agent agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
+2026-07-06 17:25:58 INFO    anpaw.agent - agent loop step=1 observations=0
+2026-07-06 17:25:58 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
+2026-07-06 17:26:03 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=65
+2026-07-06 17:26:03 INFO    anpaw.agent - agent tool call name=time args={}
+2026-07-06 17:26:03 INFO    anpaw.tools - run tool name=time args={}
+2026-07-06 17:26:03 INFO    anpaw.tools - tool result name=time result='2026-07-06 17:26:03'
+2026-07-06 17:26:03 INFO    anpaw.agent - agent loop step=2 observations=1
+2026-07-06 17:26:03 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
+2026-07-06 17:26:08 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=51
+2026-07-06 17:26:08 INFO    anpaw.agent - agent final step=2
+2026-07-06 17:26:08 INFO    anpaw.app - chat response agent=default trace_events=22 answer_preview='[step 2] 现在是2026-07-06 17:26:03'
+2026-07-06 19:33:48 INFO    anpaw.app - HTTP GET /logs
+2026-07-06 19:33:57 INFO    anpaw.app - HTTP GET /logs
+2026-07-06 19:47:18 INFO    anpaw.app - chat request agent=default provider=(default) model=(default) text='/skills'
+2026-07-06 19:47:18 INFO    anpaw.manager - resolve agent workspace agent=default
+2026-07-06 19:47:18 INFO    anpaw.tools - registered tool name=calculator
+2026-07-06 19:47:18 INFO    anpaw.tools - registered tool name=time
+2026-07-06 19:47:18 INFO    anpaw.tools - registered tool name=note
+2026-07-06 19:47:18 INFO    anpaw.workspace - workspace created agent=default skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
+2026-07-06 19:47:18 INFO    anpaw.workspace - workspace started agent=default dir=E:\.Aproject\anpaw\workspace\default
+2026-07-06 19:47:18 INFO    anpaw.manager - workspace loaded agent=default
+2026-07-06 19:47:18 INFO    anpaw.runner - handled command agent=default command=/skills
+2026-07-06 19:47:18 INFO    anpaw.app - chat response agent=default trace_events=7 answer_preview='- calculator: 处理数学、计算、数字推理类任务。\n- writer: 处理介绍、总结、改写、文案和结构化写作任务。'
+2026-07-06 19:47:32 INFO    anpaw.app - server started on http://127.0.0.1:8095
+2026-07-06 19:47:33 INFO    anpaw.app - HTTP GET /
+2026-07-06 19:52:11 INFO    anpaw.app - chat request agent=default provider=(default) model=(default) text='/tools'
+2026-07-06 19:52:11 INFO    anpaw.manager - resolve agent workspace agent=default
+2026-07-06 19:52:11 INFO    anpaw.tools - registered tool name=calculator
+2026-07-06 19:52:11 INFO    anpaw.tools - registered tool name=time
+2026-07-06 19:52:11 INFO    anpaw.tools - registered tool name=note
+2026-07-06 19:52:11 INFO    anpaw.workspace - workspace created agent=default skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
+2026-07-06 19:52:11 INFO    anpaw.workspace - workspace started agent=default dir=E:\.Aproject\anpaw\workspace\default
+2026-07-06 19:52:11 INFO    anpaw.manager - workspace loaded agent=default
+2026-07-06 19:52:11 INFO    anpaw.runner - handled command agent=default command=/tools
+2026-07-06 19:52:11 INFO    anpaw.app - chat response agent=default trace_events=7 answer_preview='- calculator: 计算四则运算表达式\n- time: 获取当前本地时间\n- note: 把内容写入 workspace/notes.txt'

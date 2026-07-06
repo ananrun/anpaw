@@ -1,0 +1,304 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #f4f2ec;
+  color: #242424;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid #d8d2c4;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  min-width: 0;
+  padding: 22px 26px;
+  background: #fffdf8;
+  border-bottom: 1px solid #ded8c9;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 24px;
+  font-weight: 760;
+}
+
+h2 {
+  font-size: 17px;
+}
+
+#modelInfo {
+  margin-top: 6px;
+  color: #6a655a;
+  font-size: 13px;
+}
+
+.settings {
+  display: flex;
+  gap: 10px;
+  flex: 1 1 620px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.settings input,
+.settings select {
+  height: 38px;
+  border: 1px solid #cfc7b7;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #fff;
+}
+
+#agentId {
+  width: 120px;
+}
+
+#providerSelect {
+  width: 132px;
+}
+
+#modelSelect {
+  width: min(280px, 100%);
+}
+
+#apiKey {
+  width: min(230px, 100%);
+}
+
+#testModel,
+#refreshModels {
+  height: 38px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.messages {
+  overflow: auto;
+  min-height: 0;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.msg {
+  max-width: 780px;
+  border: 1px solid #ded8c9;
+  border-radius: 8px;
+  padding: 14px 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  background: #fffdf8;
+}
+
+.msg.user {
+  margin-left: auto;
+  background: #e9f5f0;
+  border-color: #c6ded3;
+}
+
+.msg.assistant {
+  margin-right: auto;
+}
+
+.msg.error {
+  border-color: #d69b9b;
+  background: #fff4f2;
+}
+
+.role {
+  display: block;
+  margin-bottom: 6px;
+  color: #7a6d5b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 92px;
+  gap: 12px;
+  padding: 18px 26px 24px;
+  background: #fffdf8;
+  border-top: 1px solid #ded8c9;
+  min-width: 0;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 72px;
+  max-height: 180px;
+  border: 1px solid #cfc7b7;
+  border-radius: 8px;
+  padding: 12px;
+  line-height: 1.45;
+}
+
+button {
+  border: 0;
+  border-radius: 7px;
+  background: #245b4f;
+  color: #fff;
+  cursor: pointer;
+  min-width: 0;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.trace {
+  min-width: 0;
+  min-height: 0;
+  background: #272521;
+  color: #f7f1e4;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  overflow: hidden;
+}
+
+.traceHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid #454038;
+}
+
+.traceActions {
+  display: flex;
+  gap: 8px;
+}
+
+.traceHead button {
+  height: 32px;
+  padding: 0 12px;
+  background: #5f574b;
+}
+
+.flow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  border-bottom: 1px solid #454038;
+}
+
+.flow span {
+  border: 1px solid #665d50;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #efe5d0;
+  font-size: 12px;
+}
+
+.traceList {
+  overflow: auto;
+  min-height: 0;
+  padding: 18px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.event {
+  border: 1px solid #4c473f;
+  border-radius: 8px;
+  padding: 12px;
+  background: #302d28;
+}
+
+.event strong {
+  display: block;
+  color: #95d7c2;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+
+.event p {
+  color: #f6eddc;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.event pre {
+  overflow: auto;
+  max-height: 180px;
+  margin: 8px 0 0;
+  color: #d6ccba;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .trace {
+    min-height: 45vh;
+  }
+
+  .composer {
+    grid-template-columns: 1fr;
+  }
+
+  .composer button {
+    height: 44px;
+  }
+
+  .topbar,
+  .settings {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #agentId,
+  #providerSelect,
+  #modelSelect,
+  #apiKey {
+    width: 100%;
+  }
+}
