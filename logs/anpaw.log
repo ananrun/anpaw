@@ -96,3 +96,5 @@
 2026-07-06 19:52:11 INFO    anpaw.manager - workspace loaded agent=default
 2026-07-06 19:52:11 INFO    anpaw.runner - handled command agent=default command=/tools
 2026-07-06 19:52:11 INFO    anpaw.app - chat response agent=default trace_events=7 answer_preview='- calculator: 计算四则运算表达式\n- time: 获取当前本地时间\n- note: 把内容写入 workspace/notes.txt'
+2026-07-06 19:52:39 INFO    anpaw.app - server started on http://127.0.0.1:8095
+2026-07-06 19:52:39 INFO    anpaw.app - HTTP GET /
