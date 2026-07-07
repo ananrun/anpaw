@@ -79,7 +79,7 @@ class MultiAgentManager:
         message = f"未找到 Workspace，开始懒加载: {agent_id}"
         flow("Manager", message)
         logger.info(message)
-        workspace = Workspace(agent_id=agent_id, root_dir=self.root_dir)
+        workspace = Workspace(agent_id=agent_id, root_dir=self.root_dir, trace=trace)
         workspace.start(trace=trace)
         self.agents[agent_id] = workspace
         message = f"Workspace 已加载并缓存: {agent_id}"

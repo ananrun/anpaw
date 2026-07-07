@@ -22,6 +22,21 @@ const settingsPanel = document.querySelector("#settingsPanel");
 const scrollBottom  = document.querySelector("#scrollBottom");
 const emptyState    = document.querySelector("#emptyState");
 const toastContainer= document.querySelector("#toastContainer");
+let startupTraceEvents = [];
+let requestTraceEvents = [];
+
+const traceSections = {
+  startup: {
+    title: "服务启动期",
+    count: "4 项",
+    nodes: ["Workspace 初始化", "Skill 加载", "Tool 注册", "Runner 就绪"],
+  },
+  request: {
+    title: "单次请求期",
+    count: "6 项",
+    nodes: ["用户提问", "Manager 取 Workspace", "Runner 编排", "Skill 匹配", "Agent Loop", "Tool/Final"],
+  },
+};
 
 // ---- 设置面板折叠 ----
 toggleSettings.addEventListener("click", () => {
@@ -75,18 +90,22 @@ document.querySelectorAll(".suggestion-chip").forEach((chip) => {
 
 async function loadConfig() {
   try {
-    const [configRes, providersRes, agentsRes] = await Promise.all([
+    const [configRes, providersRes, agentsRes, startupTraceRes] = await Promise.all([
       fetch("/config"),
       fetch("/providers"),
       fetch("/agents"),
+      fetch("/startup-trace"),
     ]);
     window.anpawConfig = await configRes.json();
     window.anpawProviders = (await providersRes.json()).providers || [];
     window.anpawAgents = await agentsRes.json();
+    const startupPayload = await startupTraceRes.json();
+    startupTraceEvents = startupPayload.trace || [];
     renderAgents();
     renderProviders();
     await loadModels(window.anpawConfig.provider || "kilo");
     updateModelInfoHint();
+    renderTracePanel();
   } catch (err) {
     toast("加载配置失败：" + err.message, "error");
   }
@@ -264,9 +283,49 @@ function scrollToBottom() {
 // ============================================
 
 function renderTrace(events) {
+  requestTraceEvents = events || [];
+  renderTracePanel();
+}
+
+function renderTracePanel() {
   traceEl.replaceChildren();
-  const empty = traceEl.querySelector(".trace-empty");
-  if (empty) empty.remove();
+
+  traceEl.appendChild(createTraceSection("startup", startupTraceEvents));
+  traceEl.appendChild(createTraceSection("request", requestTraceEvents));
+
+  traceEl.scrollTop = traceEl.scrollHeight;
+}
+
+function createTraceSection(kind, events) {
+  const meta = traceSections[kind];
+  const section = document.createElement("section");
+  section.className = "trace-section flow-group";
+
+  const head = document.createElement("button");
+  head.className = "flow-group-head";
+  head.type = "button";
+  head.setAttribute("aria-expanded", "true");
+
+  const label = document.createElement("span");
+  label.className = "flow-label";
+  label.textContent = meta.title;
+
+  const count = document.createElement("span");
+  count.className = "flow-count";
+  count.textContent = meta.count;
+
+  const toggle = document.createElement("span");
+  toggle.className = "flow-toggle";
+  toggle.textContent = "▼";
+
+  head.appendChild(label);
+  head.appendChild(count);
+  head.appendChild(toggle);
+  section.appendChild(head);
+
+  const body = document.createElement("div");
+  body.className = "trace-section-body";
+  body.appendChild(createFlowRow(meta.nodes));
 
   // 按连续相同 stage 分组
   const groups = [];
@@ -281,28 +340,42 @@ function renderTrace(events) {
   }
 
   for (const group of groups) {
-    traceEl.appendChild(createTraceGroup(group.stage, group.events));
+    body.appendChild(createTraceGroup(group.stage, group.events));
   }
-  traceEl.scrollTop = traceEl.scrollHeight;
+
+  head.addEventListener("click", () => {
+    const collapsed = section.classList.toggle("collapsed");
+    head.setAttribute("aria-expanded", String(!collapsed));
+  });
+
+  section.appendChild(body);
+  return section;
+}
+
+function createFlowRow(nodes) {
+  const row = document.createElement("div");
+  row.className = "flow-row";
+
+  nodes.forEach((name, index) => {
+    if (index > 0) {
+      const arrow = document.createElement("span");
+      arrow.className = "flow-arrow";
+      arrow.textContent = "→";
+      row.appendChild(arrow);
+    }
+
+    const node = document.createElement("span");
+    node.className = "flow-node";
+    node.textContent = name;
+    row.appendChild(node);
+  });
+
+  return row;
 }
 
 function appendTraceEvent(event) {
-  const empty = traceEl.querySelector(".trace-empty");
-  if (empty) empty.remove();
-
-  const stage = event.stage || "event";
-  const lastGroup = traceEl.lastElementChild;
-
-  // 如果最后一个分组 stage 相同，追加到该分组
-  if (lastGroup && lastGroup.classList.contains("trace-group") && lastGroup.dataset.stage === stage) {
-    const list = lastGroup.querySelector(".trace-group-list");
-    appendEventItem(list, event);
-    updateGroupCount(lastGroup);
-  } else {
-    // 创建新分组
-    traceEl.appendChild(createTraceGroup(stage, [event]));
-  }
-  traceEl.scrollTop = traceEl.scrollHeight;
+  requestTraceEvents.push(event);
+  renderTracePanel();
 }
 
 function createTraceGroup(stage, events) {
@@ -544,6 +617,10 @@ function handleStreamLine(line, handlers) {
 
 // 展开全部 trace 分组和事件
 document.querySelector("#expandAllTrace").addEventListener("click", () => {
+  document.querySelectorAll(".flow-group").forEach((g) => {
+    g.classList.remove("collapsed");
+    g.querySelector(".flow-group-head")?.setAttribute("aria-expanded", "true");
+  });
   document.querySelectorAll(".trace-group").forEach((g) => g.classList.remove("collapsed"));
   document.querySelectorAll(".event").forEach((e) => e.classList.add("expanded"));
 });
@@ -552,14 +629,15 @@ document.querySelector("#expandAllTrace").addEventListener("click", () => {
 document.querySelector("#collapseAllTrace").addEventListener("click", () => {
   document.querySelectorAll(".event").forEach((e) => e.classList.remove("expanded"));
   document.querySelectorAll(".trace-group").forEach((g) => g.classList.add("collapsed"));
+  document.querySelectorAll(".flow-group").forEach((g) => {
+    g.classList.add("collapsed");
+    g.querySelector(".flow-group-head")?.setAttribute("aria-expanded", "false");
+  });
 });
 
 clearTrace.addEventListener("click", () => {
-  traceEl.replaceChildren();
-  const empty = document.createElement("div");
-  empty.className = "trace-empty";
-  empty.textContent = "尚无链路数据，发送消息后将显示 Agent 的执行过程。";
-  traceEl.appendChild(empty);
+  requestTraceEvents = [];
+  renderTracePanel();
 });
 
 viewLogs.addEventListener("click", async () => {
@@ -587,11 +665,8 @@ providerSelect.addEventListener("change", async () => {
 
 agentId.addEventListener("change", () => {
   localStorage.setItem("anpaw.agentId", agentId.value);
-  traceEl.replaceChildren();
-  const empty = document.createElement("div");
-  empty.className = "trace-empty";
-  empty.textContent = "尚无链路数据，发送消息后将显示 Agent 的执行过程。";
-  traceEl.appendChild(empty);
+  requestTraceEvents = [];
+  renderTracePanel();
   addMessage("assistant", `已切换到智能体：${agentId.value}`);
   toast(`智能体已切换为 ${agentId.value}`, "success");
 });

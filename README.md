@@ -18,7 +18,7 @@ AnPaw 是一个用于学习 QwenPaw 智能体运行链路的精简版项目。
 
 当前页面还额外演示了：
 
-- 两个预置智能体：`researcher` 和 `writer`
+- 三个预置智能体：`default`、`researcher` 和 `writer`
 - 按 `agent_id` 复用不同 Workspace
 - 每个 Workspace 用 `session.json` 持久化会话
 - 页面端流式打印最终回复
@@ -56,12 +56,14 @@ http://127.0.0.1:8095/
 
 | Agent | agent_id | 用途 |
 | --- | --- | --- |
+| Default | `default` | 默认通用智能体，不偏向特定任务场景 |
 | Researcher | `researcher` | 偏分析、问答和工具调用的通用智能体 |
 | Writer | `writer` | 偏介绍、总结、改写和结构化写作的智能体 |
 
-启动服务时会预加载这两个 Workspace，后续请求会按 `agent_id` 复用对应的 Workspace。每个 Workspace 都有自己的目录和会话文件：
+启动服务时会预加载这三个 Workspace，后续请求会按 `agent_id` 复用对应的 Workspace。每个 Workspace 都有自己的目录和会话文件：
 
 ```text
+workspace/default/session.json
 workspace/researcher/session.json
 workspace/writer/session.json
 ```
@@ -234,24 +236,45 @@ reason -> tool_use -> tool_result -> reason
 
 ## Trace 说明
 
-页面右侧“运行链路”是一次请求级 trace：
+页面右侧“运行链路”分成两层：顶部胶囊是生命周期摘要，下面的事件列表会分成“服务启动期”和“单次请求期”两块详情。
+
+`python run.py --server` 启动时会先预加载页面可选的 `default`、`researcher`、`writer` 三个 Workspace：
+
+```text
+workspace init
+-> load memory
+-> register tools
+-> load skills
+-> create runner
+-> workspace start
+-> cache workspace
+```
+
+用户发送消息后，页面收到的是一次请求级 trace：
 
 ```text
 entry
 -> manager: 按 agent_id 查找 Workspace
--> workspace: 第一次请求会懒加载并 start，后续请求会复用已加载 workspace
+-> workspace: 通常复用启动期已加载 workspace
 -> runner: 处理命令、会话、模型配置、环境上下文
+-> skill_match: 针对当前用户消息生成本轮 Skill 候选
 -> agent-loop/model/tool_use/tool_result/final
 ```
 
-所以同一个 `agent_id` 的第一条消息会看到：
+如果请求的是预加载 agent，例如 `default`、`researcher`、`writer`，第一条消息通常会看到：
+
+```text
+workspace: reuse loaded workspace
+```
+
+只有请求未预加载过的 `agent_id`，才会在这次请求里触发懒加载：
 
 ```text
 manager: workspace not loaded, create it lazily
 workspace: start workspace services
 ```
 
-后续消息会看到：
+之后同一个 `agent_id` 的请求都会复用缓存：
 
 ```text
 workspace: reuse loaded workspace
@@ -260,9 +283,16 @@ workspace: reuse loaded workspace
 Trace 现在比早期版本更细，通常会覆盖这些学习节点：
 
 ```text
+startup          服务启动、预加载入口
+startup_agent    预加载某个预置 agent
+manager          根据 agent_id 查找 Workspace；必要时懒加载
+workspace_init   创建 Workspace 对象和目录
+memory_load      加载该 Workspace 的 session.json
+tool_register    注册内置工具
+skill_load       读取 skills/*/SKILL.md
+runner_ready     创建 AgentRunner
+workspace        start workspace services；请求期也会显示复用缓存
 entry            请求进入 AnPaw
-manager          根据 agent_id 查找或懒加载 Workspace
-workspace        初始化工作区、tools、skills
 runner           检查命令、构造 env context、合成 ModelConfig
 memory           写入用户消息 / 助手消息
 provider         选择 provider、base_url、model、是否带 Key

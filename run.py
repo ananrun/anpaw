@@ -53,6 +53,7 @@ PRESET_AGENTS = [
 # 一个进程内只有一个多 Agent 管理器。
 # 后续所有请求都会先经过它，再找到对应 agent_id 的 Workspace。
 manager = MultiAgentManager(root_dir=ROOT)
+STARTUP_TRACE: list[TraceEvent] = []
 
 
 def chat_once(
@@ -170,6 +171,10 @@ class HttpApp(BaseHTTPRequestHandler):
                     "loaded_agents": manager.list_loaded_agents(),
                 },
             )
+            return
+        if parsed.path == "/startup-trace":
+            # 返回服务启动期缓存下来的 Workspace 预加载链路。
+            self._json({"trace": _trace_dicts(STARTUP_TRACE)})
             return
         if parsed.path == "/models":
             # 返回某个 Provider 下的学习版模型清单。
@@ -342,9 +347,32 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.server:
+        STARTUP_TRACE.clear()
+        STARTUP_TRACE.append(
+            TraceEvent(
+                stage="startup",
+                detail="server boot, preload preset workspaces",
+                data={"agents": [agent["id"] for agent in PRESET_AGENTS]},
+            ),
+        )
         flow("服务", "预加载页面可选智能体", agents=[agent["id"] for agent in PRESET_AGENTS])
         for agent in PRESET_AGENTS:
-            manager.get_agent(agent["id"])
+            agent_id = agent["id"]
+            STARTUP_TRACE.append(
+                TraceEvent(
+                    stage="startup_agent",
+                    detail=f"preload workspace: {agent_id}",
+                    data={"agent_id": agent_id, "name": agent["name"]},
+                ),
+            )
+            manager.get_agent(agent_id, trace=STARTUP_TRACE)
+        STARTUP_TRACE.append(
+            TraceEvent(
+                stage="startup",
+                detail="http server ready",
+                data={"url": "http://127.0.0.1:8095/"},
+            ),
+        )
 
         server = ThreadingHTTPServer(("127.0.0.1", 8095), HttpApp)
         # Ctrl+C 时不要等待还没结束的请求线程阻塞进程退出。
@@ -370,7 +398,14 @@ def main() -> None:
     text = " ".join(args.message).strip()
     if not text:
         text = input("You: ").strip()
-    print(chat_once(args.agent, text)["answer"])
+        print(chat_once(args.agent, text)["answer"])
+
+
+def _trace_dicts(trace: list[TraceEvent]) -> list[dict]:
+    return [
+        {"stage": event.stage, "detail": event.detail, "data": event.data}
+        for event in trace
+    ]
 
 
 def test_model(
