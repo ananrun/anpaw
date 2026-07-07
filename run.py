@@ -34,6 +34,11 @@ logger = logging.getLogger("anpaw.app")
 
 PRESET_AGENTS = [
     {
+        "id": "default",
+        "name": "Default",
+        "description": "默认通用智能体，不偏向特定任务场景",
+    },
+    {
         "id": "researcher",
         "name": "Researcher",
         "description": "偏分析、问答和工具调用的通用智能体",

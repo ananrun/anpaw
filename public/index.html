@@ -8,50 +8,121 @@
   </head>
   <body>
     <main class="shell">
+      <!-- ============ 左侧：聊天区 ============ -->
       <section class="chat">
+        <!-- 顶栏 -->
         <header class="topbar">
-          <div>
-            <h1>AnPaw Agent Lab</h1>
-            <p id="modelInfo">loading model...</p>
+          <div class="topbar-left">
+            <div class="logo">
+              <span class="logo-icon">🐾</span>
+              <div>
+                <h1>AnPaw Agent Lab</h1>
+                <p id="modelInfo">loading model...</p>
+              </div>
+            </div>
           </div>
-          <div class="settings">
-            <select id="agentId" aria-label="agent"></select>
-            <select id="providerSelect" aria-label="provider"></select>
-            <select id="modelSelect" aria-label="model"></select>
-            <button id="refreshModels" type="button">刷新模型</button>
-            <input id="apiKey" type="password" placeholder="API Key (optional)" aria-label="api key">
-            <button id="testModel" type="button">测试模型</button>
-          </div>
+          <button id="toggleSettings" class="icon-btn settings-toggle" type="button" title="设置">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </header>
 
-        <div id="messages" class="messages"></div>
+        <!-- 可折叠设置面板 -->
+        <div id="settingsPanel" class="settings-panel">
+          <div class="settings-grid">
+            <label class="field">
+              <span class="field-label">智能体</span>
+              <select id="agentId" aria-label="agent"></select>
+            </label>
+            <label class="field">
+              <span class="field-label">Provider</span>
+              <select id="providerSelect" aria-label="provider"></select>
+            </label>
+            <label class="field field-wide">
+              <span class="field-label">模型</span>
+              <div class="field-row">
+                <select id="modelSelect" aria-label="model"></select>
+                <button id="refreshModels" class="btn-secondary" type="button" title="刷新模型列表">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+              </div>
+            </label>
+            <label class="field field-wide">
+              <span class="field-label">API Key（可选）</span>
+              <div class="field-row">
+                <input id="apiKey" type="password" placeholder="留空使用免费额度" aria-label="api key">
+                <button id="testModel" class="btn-secondary" type="button">测试</button>
+              </div>
+            </label>
+          </div>
+        </div>
 
+        <!-- 消息列表 -->
+        <div id="messages" class="messages">
+          <!-- 空状态占位 -->
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon">🐾</div>
+            <h2>欢迎使用 AnPaw</h2>
+            <p>教学版 Agent Runtime —— 免费模型默认无需 Key，直接发送消息即可开始。<br>点击右上角 ⚙ 展开设置面板，选择智能体、Provider 和模型。</p>
+            <div class="suggestions">
+              <button class="suggestion-chip" data-text="计算 2 + 3 * 4">🧮 计算算术</button>
+              <button class="suggestion-chip" data-text="现在几点">🕐 查看时间</button>
+              <button class="suggestion-chip" data-text="/tools">🔧 查看工具</button>
+              <button class="suggestion-chip" data-text="/skills">📚 查看技能</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 滚动到底部按钮 -->
+        <button id="scrollBottom" class="scroll-bottom-btn" type="button" title="滚动到底部">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+
+        <!-- 输入区 -->
         <form id="chatForm" class="composer">
-          <textarea id="messageInput" rows="3" placeholder="试试：计算 2 + 3 * 4 / 现在几点 / 使用 writer skill 写一段项目介绍"></textarea>
-          <button type="submit">发送</button>
+          <div class="composer-inner">
+            <textarea id="messageInput" rows="1" placeholder="输入消息，Enter 发送，Shift+Enter 换行"></textarea>
+            <button type="submit" id="sendBtn">
+              <span class="send-text">发送</span>
+              <span class="send-spinner"></span>
+            </button>
+          </div>
         </form>
       </section>
 
+      <!-- ============ 右侧：运行链路面板 ============ -->
       <aside class="trace">
         <div class="traceHead">
           <h2>运行链路</h2>
           <div class="traceActions">
-            <button id="viewLogs" type="button">日志</button>
-            <button id="clearTrace" type="button">清空</button>
+            <button id="expandAllTrace" type="button" class="trace-btn">展开全部</button>
+            <button id="collapseAllTrace" type="button" class="trace-btn">收起全部</button>
+            <button id="viewLogs" type="button" class="trace-btn">日志</button>
+            <button id="clearTrace" type="button" class="trace-btn">清空</button>
           </div>
         </div>
         <div class="flow">
-          <span>入口</span>
-          <span>Manager</span>
-          <span>Workspace</span>
-          <span>Runner</span>
-          <span>Model</span>
-          <span>Tool/Skill</span>
-          <span>Final</span>
+          <span class="flow-node">入口</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Manager</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Workspace</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Runner</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Model</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Tool/Skill</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node">Final</span>
         </div>
-        <div id="traceList" class="traceList"></div>
+        <div id="traceList" class="traceList">
+          <div class="trace-empty">尚无链路数据，发送消息后将显示 Agent 的执行过程。</div>
+        </div>
       </aside>
     </main>
+
+    <!-- Toast 容器 -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="/app.js"></script>
   </body>
