@@ -2,11 +2,13 @@ from __future__ import annotations
 
 """学习版会话记忆。
 
-这里用内存列表承载当前运行态，并可选同步到 Workspace 下的 JSON 文件。
-真实 QwenPaw 会有会话文件、上下文压缩、长期记忆等机制。
+这里用内存列表承载当前运行态，并同步到 Workspace 下的 JSON 文件。
+真实 QwenPaw 会有会话文件、上下文压缩、向量检索、长期记忆等机制。
+AnPaw 保留一个很小的关键词检索入口，供 agent-loop 通过工具主动查询。
 """
 
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -60,6 +62,44 @@ class Memory:
             return "(empty)"
         return "\n".join(f"{msg.role}: {msg.text}" for msg in recent)
 
+    def search(self, query: str, max_results: int = 3) -> str:
+        """按关键词检索当前 Workspace 的会话记忆。
+
+        这是教学版的轻量实现：不做向量化，只用文本包含和 token 重叠打分。
+        它被注册成 `memory_search` 工具，让模型像 QwenPaw 一样通过工具结果
+        获得记忆，而不是让 Runner 把历史消息硬塞进每次 prompt。
+        """
+        query = query.strip()
+        max_results = max(1, min(int(max_results or 3), 8))
+        if not query or not self.messages:
+            return "未找到相关记忆。"
+
+        query_terms = _terms(query)
+        ranked: list[tuple[int, Message]] = []
+        for message in self.messages:
+            text = message.text.strip()
+            if not text or text == query:
+                continue
+            haystack = text.lower()
+            score = 0
+            if query.lower() in haystack:
+                score += 6
+            score += len(query_terms & _terms(text))
+            if score:
+                ranked.append((score, message))
+
+        ranked.sort(key=lambda item: (item[0], item[1].created_at), reverse=True)
+        if not ranked:
+            return "未找到相关记忆。"
+
+        lines = []
+        for _, message in ranked[:max_results]:
+            snippet = message.text.replace("\n", " ").strip()
+            if len(snippet) > 180:
+                snippet = snippet[:177] + "..."
+            lines.append(f"- {message.role} @ {message.created_at}: {snippet}")
+        return "\n".join(lines)
+
 
 def _message_to_dict(message: Message) -> dict:
     """转成适合持久化的干净 JSON。"""
@@ -82,3 +122,17 @@ def _message_from_dict(data: dict) -> Message:
         metadata=dict(data.get("metadata") or {}),
         created_at=str(data.get("created_at") or ""),
     )
+
+
+def _terms(text: str) -> set[str]:
+    """提取中英文混合文本的粗粒度关键词。"""
+    lowered = text.lower()
+    words = set(re.findall(r"[a-z0-9_]{2,}", lowered))
+    chinese_terms: set[str] = set()
+    for chunk in re.findall(r"[\u4e00-\u9fff]+", lowered):
+        chinese_terms.update(chunk)
+        if len(chunk) == 1:
+            chinese_terms.add(chunk)
+        else:
+            chinese_terms.update(chunk[index : index + 2] for index in range(len(chunk) - 1))
+    return words | chinese_terms

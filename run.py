@@ -342,6 +342,8 @@ def main() -> None:
             manager.get_agent(agent["id"])
 
         server = ThreadingHTTPServer(("127.0.0.1", 8095), HttpApp)
+        # Ctrl+C 时不要等待还没结束的请求线程阻塞进程退出。
+        server.daemon_threads = True
         flow("服务", "AnPaw page: http://127.0.0.1:8095/")
         flow("服务", "AnPaw API : http://127.0.0.1:8095/chat")
         flow("服务", "AnPaw stream: http://127.0.0.1:8095/chat-stream")
@@ -349,7 +351,16 @@ def main() -> None:
         flow("服务", "当前入口文件", path=Path(__file__).resolve())
         flow("服务", "已启动，前端页面请求会在这里打印中文流程")
         logger.info("server started on http://127.0.0.1:8095")
-        server.serve_forever()
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            flow("服务", "收到 Ctrl+C，正在关闭服务")
+            logger.info("server shutdown requested by Ctrl+C")
+        finally:
+            server.server_close()
+            flow("服务", "已关闭")
+            logger.info("server closed")
+        return
 
     text = " ".join(args.message).strip()
     if not text:
@@ -430,4 +441,7 @@ def _text_chunks(text: str, size: int = 2) -> list[str]:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        flow("服务", "已取消")

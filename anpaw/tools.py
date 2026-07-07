@@ -2,8 +2,9 @@ from __future__ import annotations
 
 """内置工具系统。
 
-模型不能直接执行本地操作，只能“请求调用工具”。
-Agent 收到 tool 决策后，会通过 ToolRegistry 找到对应函数并执行。
+模型不能直接执行本地操作，只能发出 tool_use 请求。
+Agent 收到请求后，会通过 ToolRegistry 找到对应函数并执行，再把
+tool_result 交回下一轮模型。
 """
 
 import ast
@@ -15,6 +16,7 @@ from pathlib import Path
 from typing import Callable
 
 from .console import flow
+from .memory import Memory
 
 ToolFn = Callable[..., str]
 logger = logging.getLogger("anpaw.tools")
@@ -68,12 +70,18 @@ class ToolRegistry:
         return result
 
 
-def create_builtin_tools(workspace_dir: Path) -> ToolRegistry:
+def create_builtin_tools(workspace_dir: Path, memory: Memory | None = None) -> ToolRegistry:
     """创建学习版内置工具。"""
     flow("ToolRegistry", "创建内置工具注册表", workspace_dir=workspace_dir)
     registry = ToolRegistry(workspace_dir=workspace_dir)
     registry.register("calculator", "计算四则运算表达式", safe_calculate)
     registry.register("time", "获取当前本地时间", current_time)
+    if memory is not None:
+        registry.register(
+            "memory_search",
+            "检索当前 agent 的会话记忆，参数 {query, max_results}",
+            lambda query, max_results=3: memory.search(query, max_results),
+        )
     registry.register(
         "note",
         "把内容写入 workspace/notes.txt",

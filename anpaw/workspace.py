@@ -35,7 +35,8 @@ class Workspace:
         self.memory.load()
 
         # 内置工具和 Skill 在 Workspace 创建时装配。
-        self.tools = create_builtin_tools(self.workspace_dir)
+        # memory_search 工具会通过这里拿到当前 Workspace 的会话记忆。
+        self.tools = create_builtin_tools(self.workspace_dir, memory=self.memory)
         self.skills = SkillLoader(self.skills_dir).load()
         flow(
             "Workspace",

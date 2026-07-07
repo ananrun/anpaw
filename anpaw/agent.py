@@ -5,10 +5,10 @@ from __future__ import annotations
 真实 QwenPaw 使用 AgentScope ReActAgent。
 AnPaw 用这个小类展示同一个核心思想：
 
-reason -> act -> observe -> reason -> final
+reason -> tool_use -> tool_result -> reason -> final
 
-模型先决定是否调用工具；
-工具结果作为 observation 再喂回模型；
+模型先决定是否发起 tool_use；
+工具结果作为 tool_result 再喂回模型；
 直到模型返回 final 或达到最大轮数。
 """
 
@@ -17,8 +17,8 @@ from dataclasses import dataclass
 
 from .console import flow
 from .messages import AssistantMessage, ToolObservation, TraceEvent, UserMessage
-from .model import KiloChatModel, RuleModel
-from .skills import Skill
+from .model import KiloChatModel
+from .skills import Skill, rank_skills
 from .tools import ToolRegistry
 
 logger = logging.getLogger("anpaw.agent")
@@ -55,8 +55,10 @@ class SimpleAgent:
     def run(self, message: UserMessage) -> AssistantMessage:
         """执行 agent-loop。
 
-        observations 保存每次工具调用的返回值。
-        每一轮模型都会看到当前用户消息和已有 observations。
+        observations 保存本轮已产生的 tool_result。
+        每一轮模型都会看到当前用户消息和本轮已有 tool_result。
+        持久化 Memory 由 Runner 负责写入；需要历史上下文时，模型可以
+        主动调用 memory_search 工具。
         """
         flow(
             "Agent",
@@ -82,18 +84,40 @@ class SimpleAgent:
 
         for step in range(1, self.max_iters + 1):
             # 1. Reason：询问模型下一步做什么。
-            flow("Agent", "Reason: 询问模型下一步动作", step=step, observations=len(observations))
-            logger.info("agent loop step=%s observations=%s", step, len(observations))
+            flow("Agent", "Reason: 询问模型下一步动作", step=step, tool_results=len(observations))
+            logger.info("agent loop step=%s tool_results=%s", step, len(observations))
             self.trace.append(
                 TraceEvent(
                     stage="agent-loop",
                     detail=f"step {step}: ask model to decide",
-                    data={"observations": len(observations)},
+                    data={"tool_results": len(observations)},
+                ),
+            )
+            skill_matches = rank_skills(message.text, self.skills)
+            flow(
+                "Skill",
+                "本地生成 Skill 候选",
+                step=step,
+                matches=[
+                    {
+                        "name": item["name"],
+                        "score": item["score"],
+                        "terms": item["matched_terms"],
+                    }
+                    for item in skill_matches
+                ],
+            )
+            self.trace.append(
+                TraceEvent(
+                    stage="skill_match",
+                    detail="rank skills for current user message",
+                    data={"matches": skill_matches},
                 ),
             )
             decision = self.model.decide(
                 user_text=message.text,
                 skills=self.skills,
+                skill_matches=skill_matches,
                 observations=observations,
             )
             flow(
@@ -102,6 +126,7 @@ class SimpleAgent:
                 step=step,
                 type=decision.type,
                 tool=decision.tool_name,
+                matched_skills=decision.matched_skills,
                 content=decision.content[:80],
             )
 
@@ -139,8 +164,9 @@ class SimpleAgent:
                     detail=f"decision: {decision.type}",
                     data={
                         "content": decision.content,
-                        "tool_name": decision.tool_name,
-                        "arguments": decision.arguments or {},
+                        "matched_skills": decision.matched_skills,
+                        "name": decision.tool_name,
+                        "input": decision.arguments or {},
                     },
                 ),
             )
@@ -166,26 +192,29 @@ class SimpleAgent:
 
             assert decision.tool_name is not None
             assert decision.arguments is not None
-            # 2b. Act：模型选择了工具，Agent 负责真正执行工具。
+            # 2b. ToolUse：模型选择了工具，Agent 负责真正执行工具。
             flow(
                 "Agent",
-                "Act: 调用工具",
+                "ToolUse: 调用工具",
                 step=step,
                 tool=decision.tool_name,
-                arguments=decision.arguments,
+                input=decision.arguments,
             )
             logger.info("agent tool call name=%s args=%s", decision.tool_name, decision.arguments)
             self.trace.append(
                 TraceEvent(
-                    stage="tool",
+                    stage="tool_use",
                     detail=f"run {decision.tool_name}",
-                    data={"arguments": decision.arguments},
+                    data={
+                        "name": decision.tool_name,
+                        "input": decision.arguments,
+                    },
                 ),
             )
             result = self.tools.run(decision.tool_name, decision.arguments)
 
-            # 3. Observe：工具执行结果不会直接当最终答案，
-            # 而是作为 observation 交给下一轮模型继续推理。
+            # 3. ToolResult：工具执行结果不会直接当最终答案，
+            # 而是作为 tool_result 交给下一轮模型继续推理。
             observations.append(
                 ToolObservation(
                     tool_name=decision.tool_name,
@@ -193,10 +222,10 @@ class SimpleAgent:
                     result=result,
                 ),
             )
-            flow("Agent", "Observe: 工具结果将交给下一轮模型", step=step, result=result[:120])
+            flow("Agent", "ToolResult: 工具结果将交给下一轮模型", step=step, result=result[:120])
             self.trace.append(
                 TraceEvent(
-                    stage="observation",
+                    stage="tool_result",
                     detail=f"{decision.tool_name} returned",
                     data={
                         "result": result,
@@ -217,7 +246,7 @@ class SimpleAgent:
         )
 
 
-ModelLike = RuleModel | KiloChatModel
+ModelLike = KiloChatModel
 
 
 def _trace_dicts(trace: list[TraceEvent]) -> list[dict]:

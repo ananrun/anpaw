@@ -12,7 +12,7 @@ AnPaw 是一个用于学习 QwenPaw 智能体运行链路的精简版项目。
 -> MultiAgentManager 找 Workspace
 -> AgentRunner 处理命令、会话、上下文
 -> SimpleAgent 装配模型、skills、tools
--> agent-loop: 模型决定 action -> 工具执行 -> observation 回给模型
+-> agent-loop: 模型决定 tool_use/final -> 工具执行 -> tool_result 回给模型
 -> 返回最终回答
 ```
 
@@ -29,12 +29,17 @@ AnPaw 是一个用于学习 QwenPaw 智能体运行链路的精简版项目。
 
 ![AnPaw 项目结构图](docs/anpaw-structure.png)
 
+## Agent Loop 细节图
+
+![AnPaw Agent Loop 细节图](docs/agent-loop-detail.png)
+
 ## 运行
 
 在 PowerShell 里：
 
 ```powershell
 cd E:\.Aproject\anpaw
+python -m pip install -r requirements.txt
 python run.py "计算 2 + 3 * 4"
 python run.py "使用 writer skill 写一段项目介绍"
 python run.py "/skills"
@@ -153,7 +158,7 @@ error    后端异常
 4. `anpaw/workspace.py`：单 Agent 工作区，组合 runner、memory、skill loader。
 5. `anpaw/runner.py`：一次请求的编排层，处理 `/clear`、`/history`、`/skills`。
 6. `anpaw/agent.py`：真正的 agent-loop。
-7. `anpaw/model.py`：规则模型和 OpenAI-compatible 云端模型客户端。
+7. `anpaw/model.py`：OpenAI-compatible 云端模型客户端和决策 JSON 解析。
 8. `anpaw/tools.py`：工具注册和执行。
 9. `anpaw/skills.py`：读取 `skills/*/SKILL.md`。
 10. `public/`：实验页面，展示聊天、流式回复和运行轨迹。
@@ -192,9 +197,16 @@ ProviderSpec
 | `Workspace` | `src/qwenpaw/app/workspace/workspace.py` |
 | `AgentRunner` | `src/qwenpaw/app/runner/runner.py` |
 | `SimpleAgent` | `src/qwenpaw/agents/react_agent.py` 中的 `QwenPawAgent` |
-| `RuleModel` | Provider/Model 层 |
+| `KiloChatModel` | Provider/Model 层 |
 | `ToolRegistry` | AgentScope Toolkit + 内置工具/MCP 工具 |
 | `SkillLoader` | skill_system + `SKILL.md` |
+
+注意：AnPaw 的 `_decision_prompt()` 是教学版协议，用严格 JSON 模拟
+`tool_use -> tool_result -> final`。QwenPaw 本体不是只靠这一段 prompt
+粗暴判断工具；它基于 AgentScope `ReActAgent`、Toolkit、formatter 和模型
+原生/兼容的 tool-use 消息工作。启动时 QwenPaw 会注册内置工具、MCP 工具和
+Skill，运行时模型在 ReAct 循环中根据系统提示、Skill 内容、工具 schema、
+上下文和 memory/tool result 决定是否发起工具调用。
 
 ## 学习重点
 
@@ -206,12 +218,14 @@ ProviderSpec
 workspace/<agent_id>/session.json
 ```
 
-这让不同 agent 的上下文彼此隔离，也让服务重启后还能用 `/history` 看到之前的会话。
+这让不同 agent 的会话文件彼此隔离，也让服务重启后还能用 `/history` 看到之前的会话。
 
-`SimpleAgent` 也不直接“知道所有事”，它只是把模型、工具、skills、记忆组织起来，并反复执行：
+当前版本还把记忆检索注册成了 `memory_search` 工具。Runner 不会把整段历史自动塞进每次 prompt；如果模型判断用户问题需要历史上下文，它会先返回 `tool_use` 调用 `memory_search`，Agent 执行后把 `tool_result` 交回下一轮模型。这比简单拼 prompt 更接近 QwenPaw/AgentScope 的 ReAct 工具调用形状。
+
+`SimpleAgent` 也不直接“知道所有事”，它只拿到当前用户消息、本轮 `tool_result`、tools、skills 和模型客户端，并反复执行：
 
 ```text
-reason -> act -> observe -> reason
+reason -> tool_use -> tool_result -> reason
 ```
 
 真实项目复杂，是因为每个方块都有生产级能力：原生 token 流式、鉴权、多渠道、MCP、模型供应商、安全审批、上下文压缩、持久化、热重载。AnPaw 把这些先拿掉，只留下骨架。
@@ -227,7 +241,7 @@ entry
 -> manager: 按 agent_id 查找 Workspace
 -> workspace: 第一次请求会懒加载并 start，后续请求会复用已加载 workspace
 -> runner: 处理命令、会话、模型配置、环境上下文
--> agent-loop/model/tool/observation/final
+-> agent-loop/model/tool_use/tool_result/final
 ```
 
 所以同一个 `agent_id` 的第一条消息会看到：
@@ -253,11 +267,12 @@ runner           检查命令、构造 env context、合成 ModelConfig
 memory           写入用户消息 / 助手消息
 provider         选择 provider、base_url、model、是否带 Key
 agent            初始化 SimpleAgent runtime
-agent-loop       第 N 轮 reason/act/observe 循环
+agent-loop       第 N 轮 reason/tool_use/tool_result 循环
+skill_match      本地生成 Skill 候选，展示分数和匹配词
 model-http       云端 chat/completions 请求、原始响应预览、错误
-model            模型决策：final 或 tool
-tool             工具调用参数
-observation      工具结果送回模型
+model            模型决策：final 或 tool_use
+tool_use         工具调用名称和参数
+tool_result      工具结果送回模型
 final            最终回复返回给用户
 ```
 

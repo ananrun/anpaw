@@ -5,7 +5,7 @@ from __future__ import annotations
 Runner 不直接“思考”，也不直接调用工具。
 它负责把一次请求整理成 Agent 可以执行的形式：
 - 判断是否是内置命令
-- 写入会话记忆
+- 写入会话记忆，供 `/history` 查看和 JSON 持久化
 - 构造环境上下文
 - 解析 provider/model 配置
 - 创建 SimpleAgent 并启动 agent-loop
@@ -108,7 +108,8 @@ class AgentRunner:
             return command_response
 
         # 普通用户消息进入会话记忆。
-        # 后续可以通过 /history 看到最近消息。
+        # 这份记忆会持久化到 session.json，并可通过 /history 查看；
+        # 当前学习版还没有把历史消息检索后注入模型上下文。
         self.memory.add(message)
         flow("Memory", "用户消息已写入会话记忆", count=len(self.memory.messages))
         trace.append(
@@ -121,6 +122,7 @@ class AgentRunner:
 
         # env_context 是给 Agent/模型看的运行环境摘要。
         # 它让模型知道当前 agent、session、可用 tools/skills。
+        # 注意这里没有包含历史 Memory 内容。
         env = self._build_env_context()
         flow("Runner", "已构造 env_context，准备解析模型配置")
         trace.append(
@@ -190,7 +192,7 @@ class AgentRunner:
         flow("Runner", "SimpleAgent 已创建，进入 agent-loop")
         response = agent.run(message)
 
-        # 最终回复也进入记忆，形成一轮完整对话。
+        # 最终回复也进入记忆，形成一轮完整对话，并同步保存到 JSON。
         self.memory.add(response)
         flow("Memory", "助手回复已写入会话记忆", count=len(self.memory.messages))
         trace.append(
