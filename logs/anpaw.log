@@ -1,185 +1,22 @@
-2026-07-07 10:22:13 INFO    anpaw.app - server started on http://127.0.0.1:8095
-2026-07-07 10:22:17 INFO    anpaw.app - HTTP GET /
-2026-07-07 10:22:17 INFO    anpaw.app - HTTP GET /style.css
-2026-07-07 10:22:17 INFO    anpaw.app - HTTP GET /app.js
-2026-07-07 10:22:17 INFO    anpaw.app - HTTP GET /config
-2026-07-07 10:22:17 INFO    anpaw.app - HTTP GET /providers
-2026-07-07 10:22:17 INFO    anpaw.app - HTTP GET /models
-2026-07-07 10:22:25 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:22:25 INFO    anpaw.app - chat request agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='你好，请介绍自己'
-2026-07-07 10:22:25 INFO    anpaw.manager - resolve agent workspace agent=default
-2026-07-07 10:22:25 INFO    anpaw.manager - reuse workspace agent=default
-2026-07-07 10:22:25 INFO    anpaw.runner - runner invoking agent agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:22:25 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:22:25 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:22:31 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=127
-2026-07-07 10:22:31 INFO    anpaw.agent - agent final step=1
-2026-07-07 10:22:31 INFO    anpaw.app - chat response agent=default trace_events=15 answer_preview='[step 1] 你好！我是一个由训练得到的AI助手，能够理解和生成中文文本，回答问题、进行写作、总结、改写等任务。我具备writer技能，可以帮助你进行介绍、总结、改写、文案和结构化写作。有什么我可以帮助你的吗？'
-2026-07-07 10:24:16 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:24:16 INFO    anpaw.app - chat request agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='你有哪些工具和技能可以使用'
-2026-07-07 10:24:16 INFO    anpaw.manager - resolve agent workspace agent=default
-2026-07-07 10:24:16 INFO    anpaw.manager - reuse workspace agent=default
-2026-07-07 10:24:16 INFO    anpaw.runner - runner invoking agent agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:24:16 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:24:16 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:24:31 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=142
-2026-07-07 10:24:31 INFO    anpaw.agent - agent final step=1
-2026-07-07 10:24:31 INFO    anpaw.app - chat response agent=default trace_events=15 answer_preview='[step 1] 我可用的工具有：calculator（计算器）、time（获取当前时间）、note（记笔记）。我可用的技能有：calculator（处理数学、计算、数字推理任务）和 writer（处理介绍、总结、改写、文案和结构化写作任务'
-2026-07-07 10:30:30 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:30:30 INFO    anpaw.app - chat request agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='你计算一下897/87'
-2026-07-07 10:30:30 INFO    anpaw.manager - resolve agent workspace agent=default
-2026-07-07 10:30:30 INFO    anpaw.manager - reuse workspace agent=default
-2026-07-07 10:30:30 INFO    anpaw.runner - runner invoking agent agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:30:30 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:30:30 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:30:33 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=103
-2026-07-07 10:30:33 INFO    anpaw.agent - agent tool call name=calculator args={'expression': '897/87'}
-2026-07-07 10:30:33 INFO    anpaw.tools - run tool name=calculator args={'expression': '897/87'}
-2026-07-07 10:30:33 INFO    anpaw.tools - tool result name=calculator result='10.310344827586206'
-2026-07-07 10:30:33 INFO    anpaw.agent - agent loop step=2 observations=1
-2026-07-07 10:30:33 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:30:39 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=56
-2026-07-07 10:30:39 INFO    anpaw.agent - agent final step=2
-2026-07-07 10:30:39 INFO    anpaw.app - chat response agent=default trace_events=21 answer_preview='[step 2] 897/87 ≈ 10.310344827586206'
-2026-07-07 10:32:45 INFO    anpaw.app - chat request agent=debug provider=(default) model=(default) text='/tools'
-2026-07-07 10:32:45 INFO    anpaw.manager - 根据 agent_id='debug' 查找 Workspace
-2026-07-07 10:32:45 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: debug
-2026-07-07 10:32:45 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:32:45 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:32:45 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:32:45 INFO    anpaw.workspace - workspace created agent=debug skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:32:45 INFO    anpaw.workspace - workspace started agent=debug dir=E:\.Aproject\anpaw\workspace\debug
-2026-07-07 10:32:45 INFO    anpaw.manager - Workspace 已加载并缓存: debug
-2026-07-07 10:32:45 INFO    anpaw.runner - handled command agent=debug command=/tools
-2026-07-07 10:32:45 INFO    anpaw.app - chat response agent=debug trace_events=7 answer_preview='- calculator: 计算四则运算表达式\n- time: 获取当前本地时间\n- note: 把内容写入 workspace/notes.txt'
-2026-07-07 10:33:15 INFO    anpaw.app - server started on http://127.0.0.1:8095
-2026-07-07 10:33:23 INFO    anpaw.app - HTTP GET /
-2026-07-07 10:33:23 INFO    anpaw.app - HTTP GET /style.css
-2026-07-07 10:33:23 INFO    anpaw.app - HTTP GET /app.js
-2026-07-07 10:33:23 INFO    anpaw.app - HTTP GET /config
-2026-07-07 10:33:23 INFO    anpaw.app - HTTP GET /providers
-2026-07-07 10:33:23 INFO    anpaw.app - HTTP GET /models
-2026-07-07 10:33:35 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:33:35 INFO    anpaw.app - chat request agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='你有哪些工具和技能可以使用'
-2026-07-07 10:33:35 INFO    anpaw.manager - resolve agent workspace agent=default
-2026-07-07 10:33:35 INFO    anpaw.manager - reuse workspace agent=default
-2026-07-07 10:33:35 INFO    anpaw.runner - runner invoking agent agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:33:35 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:33:35 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:33:40 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=151
-2026-07-07 10:33:40 INFO    anpaw.agent - agent final step=1
-2026-07-07 10:33:40 INFO    anpaw.app - chat response agent=default trace_events=15 answer_preview='[step 1] 可用的工具包括：calculator（算术计算）、time（获取当前时间）、note（添加笔记）。可用的技能包括：calculator（处理数学、计算、数字推理任务）和 writer（处理介绍、总结、改写、文案和结构化写作'
-2026-07-07 10:36:06 INFO    anpaw.app - server started on http://127.0.0.1:8095
-2026-07-07 10:36:09 INFO    anpaw.app - HTTP GET /
-2026-07-07 10:36:09 INFO    anpaw.app - HTTP GET /style.css
-2026-07-07 10:36:09 INFO    anpaw.app - HTTP GET /app.js
-2026-07-07 10:36:09 INFO    anpaw.app - HTTP GET /config
-2026-07-07 10:36:09 INFO    anpaw.app - HTTP GET /providers
-2026-07-07 10:36:09 INFO    anpaw.app - HTTP GET /models
-2026-07-07 10:36:17 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:36:17 INFO    anpaw.app - chat request agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='计算987/23'
-2026-07-07 10:36:17 INFO    anpaw.manager - 根据 agent_id='default' 查找 Workspace
-2026-07-07 10:36:17 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: default
-2026-07-07 10:36:17 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:36:17 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:36:17 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:36:17 INFO    anpaw.workspace - workspace created agent=default skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:36:17 INFO    anpaw.workspace - workspace started agent=default dir=E:\.Aproject\anpaw\workspace\default
-2026-07-07 10:36:17 INFO    anpaw.manager - Workspace 已加载并缓存: default
-2026-07-07 10:36:17 INFO    anpaw.runner - runner invoking agent agent=default provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:36:17 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:36:17 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:36:35 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=114
-2026-07-07 10:36:35 INFO    anpaw.agent - agent tool call name=calculator args={'expression': '987/23'}
-2026-07-07 10:36:35 INFO    anpaw.tools - run tool name=calculator args={'expression': '987/23'}
-2026-07-07 10:36:35 INFO    anpaw.tools - tool result name=calculator result='42.91304347826087'
-2026-07-07 10:36:35 INFO    anpaw.agent - agent loop step=2 observations=1
-2026-07-07 10:36:35 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:36:42 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=46
-2026-07-07 10:36:42 INFO    anpaw.agent - agent final step=2
-2026-07-07 10:36:42 INFO    anpaw.app - chat response agent=default trace_events=22 answer_preview='[step 2] 42.91304347826087'
-2026-07-07 10:44:55 INFO    anpaw.manager - 根据 agent_id='researcher' 查找 Workspace
-2026-07-07 10:44:55 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: researcher
-2026-07-07 10:44:55 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:44:55 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:44:55 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:44:55 INFO    anpaw.workspace - workspace created agent=researcher skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:44:55 INFO    anpaw.workspace - workspace started agent=researcher dir=E:\.Aproject\anpaw\workspace\researcher
-2026-07-07 10:44:55 INFO    anpaw.manager - Workspace 已加载并缓存: researcher
-2026-07-07 10:44:55 INFO    anpaw.manager - 根据 agent_id='writer' 查找 Workspace
-2026-07-07 10:44:55 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: writer
-2026-07-07 10:44:55 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:44:55 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:44:55 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:44:55 INFO    anpaw.workspace - workspace created agent=writer skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:44:55 INFO    anpaw.workspace - workspace started agent=writer dir=E:\.Aproject\anpaw\workspace\writer
-2026-07-07 10:44:55 INFO    anpaw.manager - Workspace 已加载并缓存: writer
-2026-07-07 10:44:55 INFO    anpaw.app - server started on http://127.0.0.1:8095
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /style.css
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /app.js
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /agents
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /config
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /providers
-2026-07-07 10:45:05 INFO    anpaw.app - HTTP GET /models
-2026-07-07 10:45:49 INFO    anpaw.app - HTTP POST /chat keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:45:49 INFO    anpaw.app - chat request agent=writer provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='输出100个文字，然后计算876/87'
-2026-07-07 10:45:49 INFO    anpaw.manager - 根据 agent_id='writer' 查找 Workspace
-2026-07-07 10:45:49 INFO    anpaw.manager - 命中缓存，复用已加载 Workspace: writer
-2026-07-07 10:45:49 INFO    anpaw.runner - runner invoking agent agent=writer provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:45:49 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:45:49 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:45:55 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=102
-2026-07-07 10:45:55 INFO    anpaw.agent - agent tool call name=calculator args={'expression': '876/87'}
-2026-07-07 10:45:55 INFO    anpaw.tools - run tool name=calculator args={'expression': '876/87'}
-2026-07-07 10:45:55 INFO    anpaw.tools - tool result name=calculator result='10.068965517241379'
-2026-07-07 10:45:55 INFO    anpaw.agent - agent loop step=2 observations=1
-2026-07-07 10:45:55 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:47:28 INFO    anpaw.app - chat request agent=logtest provider=(default) model=(default) text='/tools'
-2026-07-07 10:47:28 INFO    anpaw.manager - 根据 agent_id='logtest' 查找 Workspace
-2026-07-07 10:47:28 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: logtest
-2026-07-07 10:47:28 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:47:28 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:47:28 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:47:28 INFO    anpaw.workspace - workspace created agent=logtest skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:47:28 INFO    anpaw.workspace - workspace started agent=logtest dir=E:\.Aproject\anpaw\workspace\logtest
-2026-07-07 10:47:28 INFO    anpaw.manager - Workspace 已加载并缓存: logtest
-2026-07-07 10:47:28 INFO    anpaw.runner - handled command agent=logtest command=/tools
-2026-07-07 10:47:28 INFO    anpaw.app - chat response agent=logtest trace_events=7 answer_preview='- calculator: 计算四则运算表达式\n- time: 获取当前本地时间\n- note: 把内容写入 workspace/notes.txt'
-2026-07-07 10:52:40 WARNING anpaw.model - model decision failed provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free error=Expecting value: line 1921 column 1 (char 10560)
-2026-07-07 10:52:40 INFO    anpaw.agent - agent final step=2
-2026-07-07 10:52:40 INFO    anpaw.app - chat response agent=writer trace_events=21 answer_preview='[step 2] 云端模型调用失败，已停止本轮。\n\n错误：Expecting value: line 1921 column 1 (char 10560)\n\n这些免费 Provider 通常无需 Key，但可能会遇到公共池限流。你可以稍后重'
-2026-07-07 10:57:41 INFO    anpaw.manager - 根据 agent_id='researcher' 查找 Workspace
-2026-07-07 10:57:41 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: researcher
-2026-07-07 10:57:41 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:57:41 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:57:41 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:57:41 INFO    anpaw.workspace - workspace created agent=researcher skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:57:41 INFO    anpaw.workspace - workspace started agent=researcher dir=E:\.Aproject\anpaw\workspace\researcher
-2026-07-07 10:57:41 INFO    anpaw.manager - Workspace 已加载并缓存: researcher
-2026-07-07 10:57:41 INFO    anpaw.manager - 根据 agent_id='writer' 查找 Workspace
-2026-07-07 10:57:41 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: writer
-2026-07-07 10:57:41 INFO    anpaw.tools - registered tool name=calculator
-2026-07-07 10:57:41 INFO    anpaw.tools - registered tool name=time
-2026-07-07 10:57:41 INFO    anpaw.tools - registered tool name=note
-2026-07-07 10:57:41 INFO    anpaw.workspace - workspace created agent=writer skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
-2026-07-07 10:57:41 INFO    anpaw.workspace - workspace started agent=writer dir=E:\.Aproject\anpaw\workspace\writer
-2026-07-07 10:57:41 INFO    anpaw.manager - Workspace 已加载并缓存: writer
-2026-07-07 10:57:41 INFO    anpaw.app - server started on http://127.0.0.1:8095
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /style.css
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /app.js
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /config
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /providers
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /agents
-2026-07-07 10:57:49 INFO    anpaw.app - HTTP GET /models
-2026-07-07 10:57:51 INFO    anpaw.app - HTTP POST /model-test keys=['api_key', 'model', 'provider']
-2026-07-07 10:57:51 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
-2026-07-07 10:57:54 INFO    anpaw.model - model HTTP response provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free chars=6
-2026-07-07 10:58:24 INFO    anpaw.app - HTTP POST /chat-stream keys=['agent_id', 'api_key', 'message', 'model', 'provider']
-2026-07-07 10:58:24 INFO    anpaw.app - chat request agent=writer provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free text='输出100个字'
-2026-07-07 10:58:24 INFO    anpaw.manager - 根据 agent_id='writer' 查找 Workspace
-2026-07-07 10:58:24 INFO    anpaw.manager - 命中缓存，复用已加载 Workspace: writer
-2026-07-07 10:58:24 INFO    anpaw.runner - runner invoking agent agent=writer provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key
-2026-07-07 10:58:24 INFO    anpaw.agent - agent loop step=1 observations=0
-2026-07-07 10:58:24 INFO    anpaw.model - model HTTP request provider=kilo model=nvidia/nemotron-3-super-120b-a12b:free auth=no_key messages=2
+2026-07-07 11:21:02 INFO    anpaw.app - chat request agent=persist-check provider=(default) model=(default) text='/tools'
+2026-07-07 11:21:02 INFO    anpaw.manager - 根据 agent_id='persist-check' 查找 Workspace
+2026-07-07 11:21:02 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: persist-check
+2026-07-07 11:21:02 INFO    anpaw.tools - registered tool name=calculator
+2026-07-07 11:21:02 INFO    anpaw.tools - registered tool name=time
+2026-07-07 11:21:02 INFO    anpaw.tools - registered tool name=note
+2026-07-07 11:21:02 INFO    anpaw.workspace - workspace created agent=persist-check skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
+2026-07-07 11:21:02 INFO    anpaw.workspace - workspace started agent=persist-check dir=E:\.Aproject\anpaw\workspace\persist-check
+2026-07-07 11:21:02 INFO    anpaw.manager - Workspace 已加载并缓存: persist-check
+2026-07-07 11:21:02 INFO    anpaw.runner - handled command agent=persist-check command=/tools
+2026-07-07 11:21:02 INFO    anpaw.app - chat response agent=persist-check trace_events=7 answer_preview='- calculator: 计算四则运算表达式\n- time: 获取当前本地时间\n- note: 把内容写入 workspace/notes.txt'
+2026-07-07 11:21:15 INFO    anpaw.app - chat request agent=persist-check provider=(default) model=(default) text='/history'
+2026-07-07 11:21:15 INFO    anpaw.manager - 根据 agent_id='persist-check' 查找 Workspace
+2026-07-07 11:21:15 INFO    anpaw.manager - 未找到 Workspace，开始懒加载: persist-check
+2026-07-07 11:21:15 INFO    anpaw.tools - registered tool name=calculator
+2026-07-07 11:21:15 INFO    anpaw.tools - registered tool name=time
+2026-07-07 11:21:15 INFO    anpaw.tools - registered tool name=note
+2026-07-07 11:21:15 INFO    anpaw.workspace - workspace created agent=persist-check skills=['calculator', 'writer'] tools=['calculator', 'time', 'note']
+2026-07-07 11:21:15 INFO    anpaw.workspace - workspace started agent=persist-check dir=E:\.Aproject\anpaw\workspace\persist-check
+2026-07-07 11:21:15 INFO    anpaw.manager - Workspace 已加载并缓存: persist-check
+2026-07-07 11:21:15 INFO    anpaw.runner - handled command agent=persist-check command=/history
+2026-07-07 11:21:15 INFO    anpaw.app - chat response agent=persist-check trace_events=7 answer_preview='user: /tools\nassistant: - calculator: 计算四则运算表达式\n- time: 获取当前本地时间\n- note: 把内容写入 workspace/notes.txt'

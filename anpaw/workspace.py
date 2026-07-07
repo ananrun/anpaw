@@ -28,9 +28,11 @@ class Workspace:
         # 每个 Agent 拥有自己的 workspace 目录，避免状态串在一起。
         self.workspace_dir = root_dir / "workspace" / agent_id
         self.skills_dir = root_dir / "skills"
+        self.workspace_dir.mkdir(parents=True, exist_ok=True)
 
-        # 学习版使用内存记忆；重启服务后会丢失。
-        self.memory = Memory()
+        # 学习版把会话记忆持久化到每个 Workspace 的 JSON 文件里。
+        self.memory = Memory(path=self.workspace_dir / "session.json")
+        self.memory.load()
 
         # 内置工具和 Skill 在 Workspace 创建时装配。
         self.tools = create_builtin_tools(self.workspace_dir)
@@ -62,7 +64,6 @@ class Workspace:
         学习版只创建目录并记录 trace；
         真实项目会在这里启动更多后台服务。
         """
-        self.workspace_dir.mkdir(parents=True, exist_ok=True)
         flow("Workspace", "启动工作区目录", path=self.workspace_dir)
         logger.info("workspace started agent=%s dir=%s", self.agent_id, self.workspace_dir)
         if trace is not None:

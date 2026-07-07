@@ -20,9 +20,14 @@ AnPaw 是一个用于学习 QwenPaw 智能体运行链路的精简版项目。
 
 - 两个预置智能体：`researcher` 和 `writer`
 - 按 `agent_id` 复用不同 Workspace
+- 每个 Workspace 用 `session.json` 持久化会话
 - 页面端流式打印最终回复
 - 控制台中文流程输出
 - 右侧结构化 trace 和文件日志查看
+
+## 结构图
+
+![AnPaw 项目结构图](docs/anpaw-structure.png)
 
 ## 运行
 
@@ -49,7 +54,14 @@ http://127.0.0.1:8095/
 | Researcher | `researcher` | 偏分析、问答和工具调用的通用智能体 |
 | Writer | `writer` | 偏介绍、总结、改写和结构化写作的智能体 |
 
-启动服务时会预加载这两个 Workspace，后续请求会按 `agent_id` 复用对应的 Workspace。
+启动服务时会预加载这两个 Workspace，后续请求会按 `agent_id` 复用对应的 Workspace。每个 Workspace 都有自己的目录和会话文件：
+
+```text
+workspace/researcher/session.json
+workspace/writer/session.json
+```
+
+`/history` 读取的是当前 agent 对应的会话记忆；`/clear` 会清空当前 agent 的 `session.json`。
 
 页面支持两个云端 Provider：
 
@@ -187,6 +199,14 @@ ProviderSpec
 ## 学习重点
 
 `AgentRunner` 不直接“聪明”，它负责把一次请求整理成 agent 能运行的环境。
+
+`Memory` 负责保存当前 Workspace 的会话消息。运行时它仍然是一个内存列表，但每次新增或清空消息都会同步写入：
+
+```text
+workspace/<agent_id>/session.json
+```
+
+这让不同 agent 的上下文彼此隔离，也让服务重启后还能用 `/history` 看到之前的会话。
 
 `SimpleAgent` 也不直接“知道所有事”，它只是把模型、工具、skills、记忆组织起来，并反复执行：
 
