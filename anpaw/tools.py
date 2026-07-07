@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
+from .console import flow
 
 ToolFn = Callable[..., str]
 logger = logging.getLogger("anpaw.tools")
@@ -38,6 +39,7 @@ class ToolRegistry:
     def register(self, name: str, description: str, fn: ToolFn) -> None:
         """注册一个可被模型调用的工具。"""
         self._tools[name] = Tool(name=name, description=description, fn=fn)
+        flow("ToolRegistry", "注册工具", name=name, description=description)
         logger.info("registered tool name=%s", name)
 
     def get(self, name: str) -> Tool:
@@ -57,17 +59,18 @@ class ToolRegistry:
 
     def run(self, name: str, arguments: dict) -> str:
         """执行工具并返回字符串结果。"""
-        print(f"[Tool] 调用工具 {name}，参数={arguments}")
+        flow("Tool", "开始执行工具", name=name, arguments=arguments)
         logger.info("run tool name=%s args=%s", name, arguments)
         tool = self.get(name)
         result = tool.fn(**arguments)
         logger.info("tool result name=%s result=%r", name, result[:200])
-        print(f"[Tool] 工具 {name} 返回: {result[:120]!r}")
+        flow("Tool", "工具执行完成", name=name, result=result[:120])
         return result
 
 
 def create_builtin_tools(workspace_dir: Path) -> ToolRegistry:
     """创建学习版内置工具。"""
+    flow("ToolRegistry", "创建内置工具注册表", workspace_dir=workspace_dir)
     registry = ToolRegistry(workspace_dir=workspace_dir)
     registry.register("calculator", "计算四则运算表达式", safe_calculate)
     registry.register("time", "获取当前本地时间", current_time)

@@ -16,6 +16,7 @@ from uuid import uuid4
 
 from .agent import AgentContext, SimpleAgent
 from .config import load_model_config
+from .console import flow
 from .memory import Memory
 from .messages import AssistantMessage, TraceEvent, UserMessage
 from .model import KiloChatModel
@@ -56,9 +57,12 @@ class AgentRunner:
         这是 AnPaw 的请求主线：
         command path 或 normal agent-loop path 二选一。
         """
-        print(
-            f"[Runner] 开始处理消息 session={self.session_id} "
-            f"text={message.text[:60]!r}",
+        flow(
+            "Runner",
+            "开始编排本轮消息",
+            session=self.session_id,
+            text=message.text[:60],
+            memory_messages=len(self.memory.messages),
         )
         trace: list[TraceEvent] = list(initial_trace or [])
         trace.append(
@@ -87,7 +91,7 @@ class AgentRunner:
         )
         command_response = self._try_command(message.text)
         if command_response:
-            print(f"[Runner] 命中内置命令: {message.text.strip()}")
+            flow("Runner", "命中内置命令，跳过模型和工具循环", command=message.text.strip())
             logger.info("handled command agent=%s command=%s", self.agent_id, message.text.strip())
             command_response.metadata["trace"] = _trace_dicts(
                 trace
@@ -106,7 +110,7 @@ class AgentRunner:
         # 普通用户消息进入会话记忆。
         # 后续可以通过 /history 看到最近消息。
         self.memory.add(message)
-        print(f"[Runner] 用户消息已写入记忆，当前消息数={len(self.memory.messages)}")
+        flow("Memory", "用户消息已写入会话记忆", count=len(self.memory.messages))
         trace.append(
             TraceEvent(
                 stage="memory",
@@ -118,7 +122,7 @@ class AgentRunner:
         # env_context 是给 Agent/模型看的运行环境摘要。
         # 它让模型知道当前 agent、session、可用 tools/skills。
         env = self._build_env_context()
-        print("[Runner] 已构造 env_context，准备解析模型配置")
+        flow("Runner", "已构造 env_context，准备解析模型配置")
         trace.append(
             TraceEvent(
                 stage="runner",
@@ -138,10 +142,12 @@ class AgentRunner:
             provider_id=provider_id,
             model=model,
         )
-        print(
-            f"[Runner] 模型配置 provider={model_config.provider} "
-            f"model={model_config.model} "
-            f"auth={'with_key' if model_config.api_key else 'no_key'}",
+        flow(
+            "Provider",
+            "模型配置解析完成",
+            provider=model_config.provider,
+            model=model_config.model,
+            auth="with_key" if model_config.api_key else "no_key",
         )
         trace.append(
             TraceEvent(
@@ -181,12 +187,12 @@ class AgentRunner:
             skills=self.skills,
             trace=trace,
         )
-        print("[Runner] SimpleAgent 已创建，进入 agent-loop")
+        flow("Runner", "SimpleAgent 已创建，进入 agent-loop")
         response = agent.run(message)
 
         # 最终回复也进入记忆，形成一轮完整对话。
         self.memory.add(response)
-        print(f"[Runner] 助手回复已写入记忆，当前消息数={len(self.memory.messages)}")
+        flow("Memory", "助手回复已写入会话记忆", count=len(self.memory.messages))
         trace.append(
             TraceEvent(
                 stage="memory",

@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 import logging
 
+from .console import flow
 from .messages import TraceEvent
 from .workspace import Workspace
 
@@ -33,8 +34,9 @@ class MultiAgentManager:
         第一次请求某个 agent_id 时创建 Workspace；
         后续请求直接复用，模拟 QwenPaw 的懒加载行为。
         """
-        print(f"[Manager] 根据 agent_id={agent_id!r} 查找 Workspace")
-        logger.info("resolve agent workspace agent=%s", agent_id)
+        message = f"根据 agent_id={agent_id!r} 查找 Workspace"
+        flow("Manager", message, loaded_agents=list(self.agents))
+        logger.info(message)
         if trace is not None:
             trace.append(
                 TraceEvent(
@@ -47,8 +49,9 @@ class MultiAgentManager:
                 ),
             )
         if agent_id in self.agents:
-            print(f"[Manager] 命中缓存，复用已加载 Workspace: {agent_id}")
-            logger.info("reuse workspace agent=%s", agent_id)
+            message = f"命中缓存，复用已加载 Workspace: {agent_id}"
+            flow("Manager", message)
+            logger.info(message)
             if trace is not None:
                 trace.append(
                     TraceEvent(
@@ -73,12 +76,15 @@ class MultiAgentManager:
                     data={"agent_id": agent_id},
                 ),
             )
-        print(f"[Manager] 未找到 Workspace，开始懒加载: {agent_id}")
+        message = f"未找到 Workspace，开始懒加载: {agent_id}"
+        flow("Manager", message)
+        logger.info(message)
         workspace = Workspace(agent_id=agent_id, root_dir=self.root_dir)
         workspace.start(trace=trace)
         self.agents[agent_id] = workspace
-        print(f"[Manager] Workspace 已加载并缓存: {agent_id}")
-        logger.info("workspace loaded agent=%s", agent_id)
+        message = f"Workspace 已加载并缓存: {agent_id}"
+        flow("Manager", message)
+        logger.info(message)
         return workspace
 
     def list_loaded_agents(self) -> list[str]:

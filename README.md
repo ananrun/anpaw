@@ -16,6 +16,14 @@ AnPaw 是一个用于学习 QwenPaw 智能体运行链路的精简版项目。
 -> 返回最终回答
 ```
 
+当前页面还额外演示了：
+
+- 两个预置智能体：`researcher` 和 `writer`
+- 按 `agent_id` 复用不同 Workspace
+- 页面端流式打印最终回复
+- 控制台中文流程输出
+- 右侧结构化 trace 和文件日志查看
+
 ## 运行
 
 在 PowerShell 里：
@@ -33,6 +41,15 @@ python run.py --server
 ```text
 http://127.0.0.1:8095/
 ```
+
+页面顶部可以选择智能体：
+
+| Agent | agent_id | 用途 |
+| --- | --- | --- |
+| Researcher | `researcher` | 偏分析、问答和工具调用的通用智能体 |
+| Writer | `writer` | 偏介绍、总结、改写和结构化写作的智能体 |
+
+启动服务时会预加载这两个 Workspace，后续请求会按 `agent_id` 复用对应的 Workspace。
 
 页面支持两个云端 Provider：
 
@@ -95,20 +112,39 @@ python run.py --server
 ```powershell
 Invoke-RestMethod -Method Post http://127.0.0.1:8095/chat `
   -ContentType "application/json" `
-  -Body '{"agent_id":"default","message":"列出 skills"}'
+  -Body '{"agent_id":"researcher","message":"列出 skills"}'
+```
+
+页面聊天默认走流式接口：
+
+```powershell
+Invoke-WebRequest -Method Post http://127.0.0.1:8095/chat-stream `
+  -ContentType "application/json" `
+  -Body '{"agent_id":"writer","message":"写一段项目介绍"}'
+```
+
+`/chat-stream` 返回 `application/x-ndjson`，一行一个事件：
+
+```text
+status   后端阶段状态
+chunk    最终回复文本片段
+trace    完整结构化 trace
+done     本轮结束
+error    后端异常
 ```
 
 ## 读代码顺序
 
 1. `run.py`：入口，模拟 CLI / HTTP。
-2. `anpaw/manager.py`：多 Agent 管理，按 agent_id 懒加载 workspace。
-3. `anpaw/workspace.py`：单 Agent 工作区，组合 runner、memory、skill loader。
-4. `anpaw/runner.py`：一次请求的编排层，处理 `/clear`、`/history`、`/skills`。
-5. `anpaw/agent.py`：真正的 agent-loop。
-6. `anpaw/model.py`：规则模型，模拟“大模型解析意图并决定工具”。
-7. `anpaw/tools.py`：工具注册和执行。
-8. `anpaw/skills.py`：读取 `skills/*/SKILL.md`。
-9. `public/`：实验页面，展示聊天和运行轨迹。
+2. `anpaw/console.py`：控制台中文流程输出。
+3. `anpaw/manager.py`：多 Agent 管理，按 agent_id 查找或懒加载 workspace。
+4. `anpaw/workspace.py`：单 Agent 工作区，组合 runner、memory、skill loader。
+5. `anpaw/runner.py`：一次请求的编排层，处理 `/clear`、`/history`、`/skills`。
+6. `anpaw/agent.py`：真正的 agent-loop。
+7. `anpaw/model.py`：规则模型和 OpenAI-compatible 云端模型客户端。
+8. `anpaw/tools.py`：工具注册和执行。
+9. `anpaw/skills.py`：读取 `skills/*/SKILL.md`。
+10. `public/`：实验页面，展示聊天、流式回复和运行轨迹。
 
 ## Provider 学习版设计
 
@@ -131,7 +167,7 @@ ProviderSpec
 | `anpaw/providers.py` | Provider 注册表，维护学习版 OpenCode 4 个 / Kilo Code 7 个模型清单。 |
 | `anpaw/config.py` | 从页面、环境变量、`.env` 合成一次运行用的 `ModelConfig`。 |
 | `anpaw/model.py` | 统一用 OpenAI-compatible `POST /chat/completions` 调云端模型。 |
-| `public/app.js` | 页面选择 provider/model/key，并调用 `/model-test`、`/chat`。 |
+| `public/app.js` | 页面选择 agent/provider/model/key，并调用 `/model-test`、`/chat-stream`。 |
 
 这意味着它适合用来理解 Provider 思路，但没有做生产级能力缓存、限流、计费展示、模型能力矩阵、密钥加密或多用户隔离。模型清单也是教学用的 11 个云端模型，而不是 Kilo Gateway/OpenCode 后端可能暴露的所有聚合模型。免费无 Key 调用可能遇到公共池限流，这属于 Provider 侧状态，不是 AnPaw 本地错误。
 
@@ -158,7 +194,9 @@ ProviderSpec
 reason -> act -> observe -> reason
 ```
 
-真实项目复杂，是因为每个方块都有生产级能力：流式 SSE、鉴权、多渠道、MCP、模型供应商、安全审批、上下文压缩、持久化、热重载。AnPaw 把这些先拿掉，只留下骨架。
+真实项目复杂，是因为每个方块都有生产级能力：原生 token 流式、鉴权、多渠道、MCP、模型供应商、安全审批、上下文压缩、持久化、热重载。AnPaw 把这些先拿掉，只留下骨架。
+
+当前 `/chat-stream` 是教学版流式：后端先跑完一次 Agent Loop，再把最终答案切成片段推给页面逐步打印。它改善页面体验，但还不是云端模型 token 级原生流式。真正的 token 流式需要让 `KiloChatModel.chat()` 使用 provider 的 `stream: true`，并解析 SSE。
 
 ## Trace 说明
 
@@ -203,13 +241,24 @@ observation      工具结果送回模型
 final            最终回复返回给用户
 ```
 
-## 后端日志
+## 控制台和后端日志
 
-AnPaw 会同时把日志写到控制台和文件：
+控制台用于看中文流程线，例如：
+
+```text
+[10:47:28.713 pid=1220] [Runner] 命中内置命令，跳过模型和工具循环 | command='/tools'
+```
+
+文件日志写入：
 
 ```text
 E:\.Aproject\anpaw\logs\anpaw.log
 ```
+
+两者分工不同：
+
+- 控制台：适合贯通当前请求的代码路径。
+- `logs/anpaw.log`：适合排查历史请求、模型错误和后端异常。
 
 如果服务是隐藏窗口启动的，可以用页面右侧的“日志”按钮查看最近日志，也可以直接请求：
 
@@ -217,7 +266,7 @@ E:\.Aproject\anpaw\logs\anpaw.log
 Invoke-RestMethod http://127.0.0.1:8095/logs?lines=80
 ```
 
-日志记录的是后端真实执行流，例如 HTTP 请求、Workspace 加载、Runner 调用、模型请求、工具调用和错误。页面右侧 trace 更适合学习单次请求的结构化链路；`logs/anpaw.log` 更适合排查服务端发生了什么。
+页面右侧 trace 更适合学习单次请求的结构化链路；`logs/anpaw.log` 更适合排查服务端发生了什么。
 
 ## License
 

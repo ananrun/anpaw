@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .config import ModelConfig
+from .console import flow
 from .messages import ToolObservation
 from .skills import Skill
 
@@ -58,6 +59,7 @@ class RuleModel:
     ) -> ModelDecision:
         # 如果已经有工具观察结果，规则模型直接整理成 final。
         if observations:
+            flow("RuleModel", "已有工具观察结果，整理为 final", observations=len(observations))
             lines = [
                 f"我已经完成工具调用：{obs.tool_name} -> {obs.result}"
                 for obs in observations
@@ -67,6 +69,7 @@ class RuleModel:
         # 简单识别算式，决定调用 calculator 工具。
         expression = _extract_expression(user_text)
         if expression:
+            flow("RuleModel", "识别到计算意图，选择 calculator 工具", expression=expression)
             return ModelDecision(
                 type="tool",
                 content="需要先用 calculator 得到精确结果。",
@@ -76,6 +79,7 @@ class RuleModel:
 
         # 简单识别时间意图，决定调用 time 工具。
         if "时间" in user_text or "几点" in user_text:
+            flow("RuleModel", "识别到时间意图，选择 time 工具")
             return ModelDecision(
                 type="tool",
                 content="需要调用 time 工具读取当前时间。",
@@ -85,6 +89,7 @@ class RuleModel:
 
         # 简单识别记笔记意图，决定调用 note 工具。
         if "记录" in user_text or "note" in user_text:
+            flow("RuleModel", "识别到记录意图，选择 note 工具")
             return ModelDecision(
                 type="tool",
                 content="需要把用户内容写入 note。",
@@ -96,6 +101,7 @@ class RuleModel:
         # 真实项目会把 Skill 内容注入模型上下文。
         matched = _match_skill(user_text, skills)
         if matched:
+            flow("RuleModel", "匹配到 Skill，直接生成说明", skill=matched.name)
             answer = (
                 f"已匹配 skill: {matched.name}\n\n"
                 f"Skill 说明：{matched.description}\n\n"
@@ -132,9 +138,12 @@ class KiloChatModel:
         observations: list[ToolObservation],
     ) -> ModelDecision:
         """让云端模型决定下一步是 tool 还是 final。"""
-        print(
-            f"[Model] 准备让模型决策 provider={self.config.provider} "
-            f"model={self.config.model} observations={len(observations)}",
+        flow(
+            "Model",
+            "准备让模型决策",
+            provider=self.config.provider,
+            model=self.config.model,
+            observations=len(observations),
         )
         self.last_call = {}
         self.last_raw_response = ""
@@ -162,14 +171,14 @@ class KiloChatModel:
             )
             self.last_raw_response = raw
             # 约定模型返回 JSON，再解析成 ModelDecision。
-            print(f"[Model] 模型原始输出预览: {raw[:160]!r}")
+            flow("Model", "模型原始输出预览", raw=raw[:160])
             return _parse_decision(raw)
         except Exception as exc:
             # 学习版选择把模型错误转成 final 消息显示给用户。
             # 这样页面不会崩，也能在 trace 里看到错误。
             self.last_error = str(exc)
             logger.warning("model decision failed provider=%s model=%s error=%s", self.config.provider, self.config.model, exc)
-            print(f"[Model] 模型调用或解析失败: {exc}")
+            flow("Model", "模型调用或解析失败", error=str(exc))
             return ModelDecision(
                 type="final",
                 content=(
@@ -183,9 +192,13 @@ class KiloChatModel:
     def chat(self, messages: list[dict], temperature: float = 0.2) -> str:
         """调用 OpenAI-compatible `/chat/completions`。"""
         url = f"{self.config.base_url}/chat/completions"
-        print(
-            f"[ModelHTTP] POST {url} model={self.config.model} "
-            f"auth={'with_key' if self.config.api_key else 'no_key'}",
+        flow(
+            "ModelHTTP",
+            "发送 chat/completions 请求",
+            url=url,
+            model=self.config.model,
+            auth="with_key" if self.config.api_key else "no_key",
+            messages=len(messages),
         )
         payload = {
             "model": self.config.model,
@@ -230,11 +243,11 @@ class KiloChatModel:
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             logger.warning("model HTTP error status=%s body=%s", exc.code, body[:500])
-            print(f"[ModelHTTP] 请求失败 HTTP {exc.code}: {body[:200]}")
+            flow("ModelHTTP", "请求失败", status=exc.code, body=body[:200])
             raise RuntimeError(f"HTTP {exc.code}: {body}") from exc
         content = body["choices"][0]["message"]["content"]
         logger.info("model HTTP response provider=%s model=%s chars=%s", self.config.provider, self.config.model, len(content or ""))
-        print(f"[ModelHTTP] 收到响应 chars={len(content or '')}")
+        flow("ModelHTTP", "收到模型响应", chars=len(content or ""))
         return content
 
 

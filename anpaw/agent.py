@@ -15,6 +15,7 @@ reason -> act -> observe -> reason -> final
 import logging
 from dataclasses import dataclass
 
+from .console import flow
 from .messages import AssistantMessage, ToolObservation, TraceEvent, UserMessage
 from .model import KiloChatModel, RuleModel
 from .skills import Skill
@@ -57,9 +58,12 @@ class SimpleAgent:
         observations 保存每次工具调用的返回值。
         每一轮模型都会看到当前用户消息和已有 observations。
         """
-        print(
-            f"[Agent] 初始化运行时 max_iters={self.max_iters} "
-            f"tools={self.tools.names()} skills={list(self.skills)}",
+        flow(
+            "Agent",
+            "初始化运行时",
+            max_iters=self.max_iters,
+            tools=self.tools.names(),
+            skills=list(self.skills),
         )
         observations: list[ToolObservation] = []
         self.trace.append(
@@ -78,7 +82,7 @@ class SimpleAgent:
 
         for step in range(1, self.max_iters + 1):
             # 1. Reason：询问模型下一步做什么。
-            print(f"[Agent] 第 {step} 轮：询问模型下一步动作，observations={len(observations)}")
+            flow("Agent", "Reason: 询问模型下一步动作", step=step, observations=len(observations))
             logger.info("agent loop step=%s observations=%s", step, len(observations))
             self.trace.append(
                 TraceEvent(
@@ -92,9 +96,13 @@ class SimpleAgent:
                 skills=self.skills,
                 observations=observations,
             )
-            print(
-                f"[Agent] 第 {step} 轮模型决策: type={decision.type} "
-                f"tool={decision.tool_name} content={decision.content[:80]!r}",
+            flow(
+                "Agent",
+                "模型返回决策",
+                step=step,
+                type=decision.type,
+                tool=decision.tool_name,
+                content=decision.content[:80],
             )
 
             # 记录模型 HTTP 调用细节，便于在页面右侧学习模型层行为。
@@ -139,7 +147,7 @@ class SimpleAgent:
 
             if decision.type == "final":
                 # 2a. Final：模型认为任务完成，直接返回给用户。
-                print(f"[Agent] 第 {step} 轮得到 final，结束循环")
+                flow("Agent", "Final: 模型认为可以直接回复，结束循环", step=step)
                 logger.info("agent final step=%s", step)
                 self.trace.append(
                     TraceEvent(
@@ -159,7 +167,13 @@ class SimpleAgent:
             assert decision.tool_name is not None
             assert decision.arguments is not None
             # 2b. Act：模型选择了工具，Agent 负责真正执行工具。
-            print(f"[Agent] 第 {step} 轮调用工具: {decision.tool_name} {decision.arguments}")
+            flow(
+                "Agent",
+                "Act: 调用工具",
+                step=step,
+                tool=decision.tool_name,
+                arguments=decision.arguments,
+            )
             logger.info("agent tool call name=%s args=%s", decision.tool_name, decision.arguments)
             self.trace.append(
                 TraceEvent(
@@ -179,7 +193,7 @@ class SimpleAgent:
                     result=result,
                 ),
             )
-            print(f"[Agent] 工具返回 observation: {result[:120]!r}")
+            flow("Agent", "Observe: 工具结果将交给下一轮模型", step=step, result=result[:120])
             self.trace.append(
                 TraceEvent(
                     stage="observation",
@@ -192,7 +206,7 @@ class SimpleAgent:
             )
 
         # 达到最大轮数仍未 final 时，停止本轮，避免无限循环。
-        print("[Agent] 达到最大轮数，停止本轮")
+        flow("Agent", "达到最大轮数，停止本轮", max_iters=self.max_iters)
         return AssistantMessage(
             text="达到最大循环次数，任务被停止。",
             metadata={

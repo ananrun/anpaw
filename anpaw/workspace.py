@@ -9,6 +9,7 @@ Workspace 是 Agent 的“运行容器”。它把记忆、工具、技能和 Ru
 from pathlib import Path
 import logging
 
+from .console import flow
 from .memory import Memory
 from .messages import TraceEvent
 from .runner import AgentRunner
@@ -22,7 +23,7 @@ class Workspace:
     """一个 agent_id 对应一个 Workspace。"""
 
     def __init__(self, agent_id: str, root_dir: Path) -> None:
-        print(f"[Workspace] 创建工作区对象 agent={agent_id}")
+        flow("Workspace", "创建工作区对象", agent=agent_id)
         self.agent_id = agent_id
         # 每个 Agent 拥有自己的 workspace 目录，避免状态串在一起。
         self.workspace_dir = root_dir / "workspace" / agent_id
@@ -34,9 +35,11 @@ class Workspace:
         # 内置工具和 Skill 在 Workspace 创建时装配。
         self.tools = create_builtin_tools(self.workspace_dir)
         self.skills = SkillLoader(self.skills_dir).load()
-        print(
-            f"[Workspace] 已装配 tools={self.tools.names()} "
-            f"skills={list(self.skills)}",
+        flow(
+            "Workspace",
+            "已装配工具和 Skills",
+            tools=self.tools.names(),
+            skills=list(self.skills),
         )
 
         # Runner 是一次请求的编排器。
@@ -60,7 +63,7 @@ class Workspace:
         真实项目会在这里启动更多后台服务。
         """
         self.workspace_dir.mkdir(parents=True, exist_ok=True)
-        print(f"[Workspace] 启动工作区目录: {self.workspace_dir}")
+        flow("Workspace", "启动工作区目录", path=self.workspace_dir)
         logger.info("workspace started agent=%s dir=%s", self.agent_id, self.workspace_dir)
         if trace is not None:
             trace.append(

@@ -18,12 +18,15 @@ apiKey.addEventListener("input", () => {
 });
 
 async function loadConfig() {
-  const [configRes, providersRes] = await Promise.all([
+  const [configRes, providersRes, agentsRes] = await Promise.all([
     fetch("/config"),
     fetch("/providers"),
+    fetch("/agents"),
   ]);
   window.anpawConfig = await configRes.json();
   window.anpawProviders = (await providersRes.json()).providers || [];
+  window.anpawAgents = await agentsRes.json();
+  renderAgents();
   renderProviders();
   await loadModels(window.anpawConfig.provider || "kilo");
   updateModelInfoHint();
@@ -56,6 +59,23 @@ function renderProviders() {
   }
   providerSelect.value = window.anpawConfig.provider || "kilo";
   apiKey.value = localStorage.getItem(apiKeyStorageName()) || "";
+}
+
+function renderAgents() {
+  agentId.replaceChildren();
+  const payload = window.anpawAgents || {};
+  for (const agent of payload.agents || []) {
+    const option = document.createElement("option");
+    option.value = agent.id;
+    option.textContent = `${agent.name} · ${agent.id}`;
+    option.title = agent.description || agent.id;
+    agentId.appendChild(option);
+  }
+  const saved = localStorage.getItem("anpaw.agentId");
+  const preferred = saved || payload.default_agent || "researcher";
+  if ([...agentId.options].some((option) => option.value === preferred)) {
+    agentId.value = preferred;
+  }
 }
 
 async function loadModels(providerId, refresh = false) {
@@ -99,20 +119,32 @@ function addMessage(role, text, isError = false) {
   node.innerHTML = `<span class="role">${role}</span>${escapeHtml(text)}`;
   messagesEl.appendChild(node);
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  return node;
+}
+
+function setMessageText(node, role, text, isError = false) {
+  node.className = `msg ${role}${isError ? " error" : ""}`;
+  node.innerHTML = `<span class="role">${role}</span>${escapeHtml(text)}`;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
 function renderTrace(events) {
   traceEl.replaceChildren();
   for (const event of events || []) {
-    const node = document.createElement("div");
-    node.className = "event";
-    node.innerHTML = `
-      <strong>${escapeHtml(event.stage || "event")}</strong>
-      <p>${escapeHtml(event.detail || "")}</p>
-      <pre>${escapeHtml(JSON.stringify(event.data || {}, null, 2))}</pre>
-    `;
-    traceEl.appendChild(node);
+    appendTraceEvent(event);
   }
+}
+
+function appendTraceEvent(event) {
+  const node = document.createElement("div");
+  node.className = "event";
+  node.innerHTML = `
+    <strong>${escapeHtml(event.stage || "event")}</strong>
+    <p>${escapeHtml(event.detail || event.message || "")}</p>
+    <pre>${escapeHtml(JSON.stringify(event.data || {}, null, 2))}</pre>
+  `;
+  traceEl.appendChild(node);
+  traceEl.scrollTop = traceEl.scrollHeight;
 }
 
 function escapeHtml(value) {
@@ -133,12 +165,15 @@ form.addEventListener("submit", async (event) => {
   const button = form.querySelector("button");
   button.disabled = true;
 
+  const assistantNode = addMessage("assistant", "");
+  let answer = "";
+
   try {
-    const res = await fetch("/chat", {
+    const res = await fetch("/chat-stream", {
       method: "POST",
       headers: {"content-type": "application/json"},
       body: JSON.stringify({
-        agent_id: agentId.value.trim() || "default",
+        agent_id: agentId.value || window.anpawAgents?.default_agent || "researcher",
         provider: providerSelect.value,
         model: modelSelect.value,
         message: text,
@@ -146,16 +181,61 @@ form.addEventListener("submit", async (event) => {
       }),
     });
     if (!res.ok) throw new Error(await res.text());
-    const payload = await res.json();
-    addMessage("assistant", payload.answer);
-    renderTrace(payload.trace);
+    await readChatStream(res, {
+      onStatus(event) {
+        appendTraceEvent({
+          stage: event.stage || "stream",
+          detail: event.message || "",
+          data: event.data || {},
+        });
+      },
+      onChunk(text) {
+        answer += text;
+        setMessageText(assistantNode, "assistant", answer);
+      },
+      onTrace(trace) {
+        renderTrace(trace);
+      },
+      onError(message) {
+        setMessageText(assistantNode, "assistant", message, true);
+      },
+    });
   } catch (error) {
-    addMessage("assistant", error.message, true);
+    setMessageText(assistantNode, "assistant", error.message, true);
   } finally {
     button.disabled = false;
     input.focus();
   }
 });
+
+async function readChatStream(res, handlers) {
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const {value, done} = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, {stream: true});
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      handleStreamLine(line, handlers);
+    }
+  }
+  if (buffer.trim()) {
+    handleStreamLine(buffer, handlers);
+  }
+}
+
+function handleStreamLine(line, handlers) {
+  if (!line.trim()) return;
+  const event = JSON.parse(line);
+  if (event.type === "status") handlers.onStatus?.(event);
+  if (event.type === "chunk") handlers.onChunk?.(event.text || "");
+  if (event.type === "trace") handlers.onTrace?.(event.trace || []);
+  if (event.type === "error") handlers.onError?.(event.message || "stream error");
+}
 
 clearTrace.addEventListener("click", () => traceEl.replaceChildren());
 
@@ -175,6 +255,12 @@ providerSelect.addEventListener("change", async () => {
   apiKey.value = localStorage.getItem(apiKeyStorageName()) || "";
   await loadModels(providerSelect.value);
   updateModelInfoHint();
+});
+
+agentId.addEventListener("change", () => {
+  localStorage.setItem("anpaw.agentId", agentId.value);
+  traceEl.replaceChildren();
+  addMessage("assistant", `已切换到 agent：${agentId.value}`);
 });
 
 modelSelect.addEventListener("change", () => {
